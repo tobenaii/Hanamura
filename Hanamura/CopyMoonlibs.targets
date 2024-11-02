@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <Target Name="Runtime ID"  AfterTargets="Build">
+        <Message Text="Runtime ID: $(RuntimeIdentifier)" Importance="high"/>
+    </Target>
+    <ItemGroup Condition="$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))">
+        <Content Include="..\moonlibs\x64\**\*.*">
+            <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+            <Visible>false</Visible>
+        </Content>
+        <ShaderFile Include="$(ShaderSourceDir)\*.hlsl" />
+    </ItemGroup>
+    <ItemGroup Condition="$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))">
+        <Content Include="..\moonlibs\lib64\**\*.*">
+            <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+            <Visible>false</Visible>
+        </Content>
+    </ItemGroup>
+    <ItemGroup Condition="$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))">
+        <Content Include="..\moonlibs\osx\**\*.*" >
+            <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+            <Visible>false</Visible>
+        </Content>
+    </ItemGroup>
+
+    <Target Name="CompileShaders" BeforeTargets="BeforeBuild">
+        <!-- Ensure the output directory exists -->
+        <MakeDir Directories="$(OutDir)\Content\Shaders" />
+        <!-- Loop through each shader file and compile it with dxc.exe -->
+        <Exec Command="&quot;$(DxcPath)&quot; -spirv -T ps_6_0 -E main -Fo &quot;$(OutDir)\Content\Shaders\%(Filename).spv&quot; &quot;%(ShaderFile.FullPath)&quot;"
+              Condition="Exists('%(ShaderFile.FullPath)')" />
+    </Target>
+</Project>

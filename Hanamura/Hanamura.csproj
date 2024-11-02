@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <PublishAot>true</PublishAot>
+        <InvariantGlobalization>true</InvariantGlobalization>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <LangVersion>latest</LangVersion>
+    </PropertyGroup>
+    <ItemGroup>
+        <Content Include="Content\**\*.*">
+            <Link>Content\%(RecursiveDir)%(Filename)%(Extension)</Link>
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+    
+    <ItemGroup>
+      <ProjectReference Include="..\MoonTools.ECS\MoonTools.ECS.csproj" />
+      <ProjectReference Include="..\MoonWorks\MoonWorks.csproj" />
+    </ItemGroup>
+    
+    <ItemGroup>
+      <PackageReference Include="AssetRipper.SharpGLTF.Core" Version="1.0.2" />
+      <PackageReference Include="AssetRipper.SharpGLTF.Runtime" Version="1.0.2" />
+      <PackageReference Include="glTF2Loader" Version="1.1.4-alpha" />
+    </ItemGroup>
+    
+    <ItemGroup>
+      <Folder Include="Content\Models\" />
+    </ItemGroup>
+    <Import Project=".\CopyMoonlibs.targets" />
+</Project>
