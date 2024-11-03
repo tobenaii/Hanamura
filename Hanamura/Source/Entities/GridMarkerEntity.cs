@@ -6,7 +6,8 @@ namespace Hanamura
     {
         public static void Build(World world, Entity entity)
         {
-            
+            world.Set(entity, new GridMarkerData());
+            world.Set(entity, new Transform());
         }
     }
 }

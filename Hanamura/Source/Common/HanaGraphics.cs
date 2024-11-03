@@ -19,7 +19,7 @@ namespace Hanamura
                         new ColorTargetDescription
                         {
                             Format = swapchainFormat,
-                            BlendState = ColorTargetBlendState.NoBlend
+                            BlendState = ColorTargetBlendState.PremultipliedAlphaBlend
                         }
                     ],
                     DepthStencilFormat = TextureFormat.D32Float,

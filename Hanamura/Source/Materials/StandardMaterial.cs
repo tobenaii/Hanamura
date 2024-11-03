@@ -5,8 +5,8 @@ namespace Hanamura
 {
     public class StandardMaterial
     {
-        public GraphicsPipeline RenderPipeline { get; }
-        public Sampler Sampler { get; }
+        public readonly GraphicsPipeline GraphicsPipeline;
+        public readonly Sampler Sampler;
 
         public StandardMaterial(Window window, GraphicsDevice graphicsDevice, AssetStore assetStore)
         {
@@ -42,7 +42,7 @@ namespace Hanamura
             );
             pipelineCreateInfo.MultisampleState.SampleCount = RenderSystem.DefaultSampleCount;
             
-            RenderPipeline = GraphicsPipeline.Create(graphicsDevice, pipelineCreateInfo);
+            GraphicsPipeline = GraphicsPipeline.Create(graphicsDevice, pipelineCreateInfo);
             Sampler = Sampler.Create(graphicsDevice, SamplerCreateInfo.LinearWrap);
         }
     }

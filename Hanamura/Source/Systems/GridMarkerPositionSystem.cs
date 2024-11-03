@@ -5,12 +5,12 @@ using MoonWorks.Input;
 
 namespace Hanamura
 {
-    public class CursorGroundPositionSystem : MoonTools.ECS.System
+    public class GridMarkerPositionSystem : MoonTools.ECS.System
     {
         private Inputs _inputs;
         private Window _window;
 
-        public CursorGroundPositionSystem(Window window, World world, Inputs inputs) : base(world)
+        public GridMarkerPositionSystem(Window window, World world, Inputs inputs) : base(world)
         {
             _inputs = inputs;
             _window = window;
@@ -32,10 +32,10 @@ namespace Hanamura
             var view = Matrix4x4.CreateLookAt(cameraPosition, cameraPosition + cameraDirection, upDirection);
             var mousePos = new Vector2(_inputs.Mouse.X, _inputs.Mouse.Y);
             var groundPoint = GetMouseGroundPoint(mousePos, view, projection, _window.Width, _window.Height);
-            
-            ref var cursorGroundPosition = ref World.GetSingleton<CursorGroundPosition>();
-            cursorGroundPosition.Position = groundPoint;
-            Console.WriteLine(groundPoint);
+            var position = new Vector3(float.Floor(groundPoint.X * 2) / 2 + 0.25f, 0, float.Floor(groundPoint.Z * 2) / 2 + 0.25f);
+
+            ref var cursorGroundPosition = ref World.Get<Transform>(World.GetSingletonEntity<GridMarkerData>());
+            cursorGroundPosition.Position = position with { Y = 0.01f };
         }
 
         private static Vector3 GetMouseGroundPoint(Vector2 mousePos, Matrix4x4 view, Matrix4x4 projection, uint screenWidth, uint screenHeight)
@@ -56,7 +56,7 @@ namespace Hanamura
     
             var dir = Vector3.Normalize(new Vector3(far.X - near.X, far.Y - near.Y, far.Z - near.Z));
             var point = new Vector3(near.X, near.Y, near.Z) + dir * (-near.Y / dir.Y);
-            return point with { Z = -point.Z };
+            return point;
         }
     }
 }

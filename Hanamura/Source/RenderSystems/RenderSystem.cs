@@ -13,14 +13,15 @@ namespace Hanamura
         private readonly Window _window;
         private readonly GraphicsDevice _graphicsDevice;
         
-        private readonly StandardMaterialRenderSystem _standardMaterialRenderSystem;
-        private readonly FontMaterialRenderSystem _fontMaterialRenderSystem;
+        private readonly MainRenderSystem _mainRenderSystem;
+        private readonly UIRenderSystem _uiRenderSystem;
 
         public RenderSystem(World world, AssetStore assetStore, GraphicsDevice graphicsDevice, Window window) :
             base(world)
         {
-            _standardMaterialRenderSystem = new StandardMaterialRenderSystem(world, window, graphicsDevice, assetStore);
-            _fontMaterialRenderSystem = new FontMaterialRenderSystem(world, window, graphicsDevice, assetStore);
+            _mainRenderSystem = new MainRenderSystem(world, window, graphicsDevice, assetStore);
+            _uiRenderSystem = new UIRenderSystem(world, window, graphicsDevice, assetStore);
+            
             _graphicsDevice = graphicsDevice;
             _window = window;
             _renderTarget = Texture.Create2D(
@@ -49,8 +50,8 @@ namespace Hanamura
             var swapchainTexture = cmdBuf.AcquireSwapchainTexture(_window);
             if (swapchainTexture != null)
             {
-                _standardMaterialRenderSystem.Render(alpha, cmdBuf, swapchainTexture, _renderTarget, _depthTexture);
-                _fontMaterialRenderSystem.Draw(alpha, _window, cmdBuf, swapchainTexture);
+                _mainRenderSystem.Render(alpha, cmdBuf, swapchainTexture, _renderTarget, _depthTexture);
+                _uiRenderSystem.Render(alpha, _window, cmdBuf, swapchainTexture);
             }
             _graphicsDevice.Submit(cmdBuf);
         }

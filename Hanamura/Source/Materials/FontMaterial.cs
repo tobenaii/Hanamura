@@ -5,7 +5,7 @@ namespace Hanamura
 {
     public class FontMaterial
     {
-        public GraphicsPipeline FontPipeline;
+        public readonly GraphicsPipeline GraphicsPipeline;
 
         public FontMaterial(Window window, GraphicsDevice graphicsDevice)
         {
@@ -30,7 +30,7 @@ namespace Hanamura
                 }
             };
             
-            FontPipeline = GraphicsPipeline.Create(graphicsDevice, fontPipelineCreateInfo);
+            GraphicsPipeline = GraphicsPipeline.Create(graphicsDevice, fontPipelineCreateInfo);
         }
     }
 }

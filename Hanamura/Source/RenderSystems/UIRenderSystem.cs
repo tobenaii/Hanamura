@@ -6,20 +6,20 @@ using MoonWorks.Graphics.Font;
 
 namespace Hanamura
 {
-    public class FontMaterialRenderSystem : Renderer
+    public class UIRenderSystem : Renderer
     {
         private readonly FontMaterial _fontMaterial;
         private readonly Font _sofiaSans;
         private readonly TextBatch _textBatch;
         
-        public FontMaterialRenderSystem(World world, Window window, GraphicsDevice graphicsDevice, AssetStore assetStore) : base(world)
+        public UIRenderSystem(World world, Window window, GraphicsDevice graphicsDevice, AssetStore assetStore) : base(world)
         {
             _sofiaSans = assetStore.GetFont("SofiaSans".GetHashCode());
             _textBatch = new TextBatch(graphicsDevice);
             _fontMaterial = new FontMaterial(window, graphicsDevice);
         }
         
-        public void Draw(double alpha, Window window, CommandBuffer cmdBuf, Texture swapchainTexture)
+        public void Render(double alpha, Window window, CommandBuffer cmdBuf, Texture swapchainTexture)
         {
             var renderPass = cmdBuf.BeginRenderPass(
                 new ColorTargetInfo()
@@ -31,7 +31,7 @@ namespace Hanamura
             );
             
             const int fontSize = 48;
-            renderPass.BindGraphicsPipeline(_fontMaterial.FontPipeline);
+            renderPass.BindGraphicsPipeline(_fontMaterial.GraphicsPipeline);
             var textModel = Matrix4x4.CreateTranslation(window.Width / 2f, fontSize, 0);
             var textProj = Matrix4x4.CreateOrthographicOffCenter(
                 0,

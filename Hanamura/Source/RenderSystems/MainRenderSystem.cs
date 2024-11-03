@@ -6,18 +6,25 @@ using Filter = MoonTools.ECS.Filter;
 
 namespace Hanamura
 {
-    public class StandardMaterialRenderSystem : Renderer
+    public class MainRenderSystem : Renderer
     {
         private readonly StandardMaterial _standardMaterial;
+        private readonly GridMarkerMaterial _gridMarkerMaterial;
         private readonly Filter _meshFilter;
+        private readonly Filter _markerFilter;
         private readonly AssetStore _assetStore;
         
-        public StandardMaterialRenderSystem(World world, Window window, GraphicsDevice graphicsDevice, AssetStore assetStore) : base(world)
+        public MainRenderSystem(World world, Window window, GraphicsDevice graphicsDevice, AssetStore assetStore) : base(world)
         {
             _assetStore = assetStore;
             _standardMaterial = new StandardMaterial(window, graphicsDevice, assetStore);
+            _gridMarkerMaterial = new GridMarkerMaterial(window, graphicsDevice, assetStore);
             _meshFilter = FilterBuilder
                 .Include<StandardMaterialData>()
+                .Include<Transform>()
+                .Build();
+            _markerFilter = FilterBuilder
+                .Include<GridMarkerData>()
                 .Include<Transform>()
                 .Build();
         }
@@ -43,7 +50,7 @@ namespace Hanamura
             );
             var fragmentUniforms = new LightingFragmentUniform(lightTransform.Position);
             cmdBuf.PushFragmentUniformData(fragmentUniforms);
-            renderPass.BindGraphicsPipeline(_standardMaterial.RenderPipeline);
+            renderPass.BindGraphicsPipeline(_standardMaterial.GraphicsPipeline);
             foreach (var entity in _meshFilter.Entities)
             {
                 var renderData = Get<StandardMaterialData>(entity);
@@ -58,6 +65,20 @@ namespace Hanamura
                 renderPass.BindFragmentSampler(new TextureSamplerBinding(texture, _standardMaterial.Sampler));
                 cmdBuf.PushVertexUniformData(vertexUniforms);
                 renderPass.DrawIndexedPrimitives(mesh.IndexCount, 1, 0, 0, 0);
+            }
+
+            renderPass.BindGraphicsPipeline(_gridMarkerMaterial.GraphicsPipeline);
+            foreach (var entity in _markerFilter.Entities)
+            {
+                var markerTransform = World.Get<Transform>(entity);
+                var markerModel = Matrix4x4.CreateFromQuaternion(Quaternion.Identity) *
+                                  Matrix4x4.CreateTranslation(markerTransform.Position);
+                var markerVertexUniforms = new TransformVertexUniform(markerModel * viewProjection, markerModel);
+                var markerMesh = _assetStore.GetMesh("Quad".GetHashCode());
+                renderPass.BindVertexBuffer(markerMesh.VertexBuffer);
+                renderPass.BindIndexBuffer(markerMesh.IndexBuffer, IndexElementSize.ThirtyTwo);
+                cmdBuf.PushVertexUniformData(markerVertexUniforms);
+                renderPass.DrawIndexedPrimitives(markerMesh.IndexCount, 1, 0, 0, 0);
             }
             cmdBuf.EndRenderPass(renderPass);
         }

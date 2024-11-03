@@ -30,5 +30,10 @@
     <ItemGroup>
       <Folder Include="Content\Models\" />
     </ItemGroup>
+    
+    <ItemGroup>
+      <ClCompile Include="Content\Shaders\GridMarker.frag.hlsl" />
+      <ClCompile Include="Content\Shaders\GridMarker.vert.hlsl" />
+    </ItemGroup>
     <Import Project=".\CopyMoonlibs.targets" />
 </Project>

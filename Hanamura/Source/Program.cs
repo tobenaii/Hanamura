@@ -39,7 +39,7 @@ namespace Hanamura
             _systems.Add(new PlayerMovementSystem(world, Inputs));
             _systems.Add(new CameraFollowSystem(world));
             _systems.Add(new CameraUpdateSystem(world, MainWindow));
-            _systems.Add(new CursorGroundPositionSystem(MainWindow, world, Inputs));
+            _systems.Add(new GridMarkerPositionSystem(MainWindow, world, Inputs));
             
             _renderSystem = new RenderSystem(world, new AssetStore(GraphicsDevice), GraphicsDevice, MainWindow);
             
@@ -50,6 +50,7 @@ namespace Hanamura
                 .Relate(character, new PlayerControllerTarget());
             world.Spawn<MainCameraEntity>()
                 .Relate(character, new CameraTarget());
+            world.Spawn<GridMarkerEntity>();
         }
 
         protected override void Update(TimeSpan delta)
