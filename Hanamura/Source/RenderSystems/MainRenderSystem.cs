@@ -10,8 +10,10 @@ namespace Hanamura
     {
         private readonly StandardMaterial _standardMaterial;
         private readonly GridMarkerMaterial _gridMarkerMaterial;
+        private readonly BlobShadowMaterial _blobShadowMaterial;
         private readonly Filter _meshFilter;
         private readonly Filter _markerFilter;
+        private readonly Filter _blobShadowFilter;
         private readonly AssetStore _assetStore;
         
         public MainRenderSystem(World world, Window window, GraphicsDevice graphicsDevice, AssetStore assetStore) : base(world)
@@ -19,12 +21,17 @@ namespace Hanamura
             _assetStore = assetStore;
             _standardMaterial = new StandardMaterial(window, graphicsDevice, assetStore);
             _gridMarkerMaterial = new GridMarkerMaterial(window, graphicsDevice, assetStore);
+            _blobShadowMaterial = new BlobShadowMaterial(window, graphicsDevice, assetStore);
             _meshFilter = FilterBuilder
                 .Include<StandardMaterialData>()
                 .Include<Transform>()
                 .Build();
             _markerFilter = FilterBuilder
                 .Include<GridMarkerData>()
+                .Include<Transform>()
+                .Build();
+            _blobShadowFilter = FilterBuilder
+                .Include<HasblobShadow>()
                 .Include<Transform>()
                 .Build();
         }
@@ -48,7 +55,7 @@ namespace Hanamura
                 },
                 new DepthStencilTargetInfo(depthTexture, 1f, true)
             );
-            var fragmentUniforms = new LightingFragmentUniform(lightTransform.Position);
+            var fragmentUniforms = new LightingFragmentUniform(lightTransform.Forward);
             cmdBuf.PushFragmentUniformData(fragmentUniforms);
             renderPass.BindGraphicsPipeline(_standardMaterial.GraphicsPipeline);
             foreach (var entity in _meshFilter.Entities)
@@ -80,6 +87,22 @@ namespace Hanamura
                 cmdBuf.PushVertexUniformData(markerVertexUniforms);
                 renderPass.DrawIndexedPrimitives(markerMesh.IndexCount, 1, 0, 0, 0);
             }
+            
+            renderPass.BindGraphicsPipeline(_blobShadowMaterial.GraphicsPipeline);
+            foreach (var entity in _blobShadowFilter.Entities)
+            {
+                var blobShadowTransform = World.Get<Transform>(entity);
+                var blobShadowModel = Matrix4x4.CreateFromQuaternion(Quaternion.Identity) *
+                                      Matrix4x4.CreateTranslation(blobShadowTransform.Position with { Y = 0.01f });
+                var blobShadowVertexUniforms =
+                    new TransformVertexUniform(blobShadowModel * viewProjection, blobShadowModel);
+                var blobShadowMesh = _assetStore.GetMesh("BlobShadow".GetHashCode());
+                renderPass.BindVertexBuffer(blobShadowMesh.VertexBuffer);
+                renderPass.BindIndexBuffer(blobShadowMesh.IndexBuffer, IndexElementSize.ThirtyTwo);
+                cmdBuf.PushVertexUniformData(blobShadowVertexUniforms);
+                renderPass.DrawIndexedPrimitives(blobShadowMesh.IndexCount, 1, 0, 0, 0);
+            }
+
             cmdBuf.EndRenderPass(renderPass);
         }
     }

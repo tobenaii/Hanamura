@@ -9,6 +9,7 @@ namespace Hanamura
         {
             world.Set(entity, new StandardMaterialData("Capsule".GetHashCode(), "PixPal_BaseColor".GetHashCode()));
             world.Set(entity, new Transform(Vector3.Zero, Quaternion.Identity));
+            world.Set(entity, new HasblobShadow());
         }
     }
 }

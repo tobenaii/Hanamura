@@ -32,6 +32,8 @@
     </ItemGroup>
     
     <ItemGroup>
+      <ClCompile Include="Content\Shaders\BlobShadow.frag.hlsl" />
+      <ClCompile Include="Content\Shaders\BlobShadow.vert.hlsl" />
       <ClCompile Include="Content\Shaders\GridMarker.frag.hlsl" />
       <ClCompile Include="Content\Shaders\GridMarker.vert.hlsl" />
     </ItemGroup>

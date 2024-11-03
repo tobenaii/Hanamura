@@ -18,11 +18,11 @@ namespace Hanamura
     [StructLayout(LayoutKind.Sequential)]
     public struct LightingFragmentUniform
     {
-        public Vector3 LightPosition;
+        public Vector3 LightDirection;
 
         public LightingFragmentUniform(Vector3 lightPosition)
         {
-            LightPosition = lightPosition;
+            LightDirection = lightPosition;
         }
     }
 }
