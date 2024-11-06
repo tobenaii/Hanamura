@@ -9,12 +9,12 @@ namespace Hanamura
     public class UIRenderSystem : Renderer
     {
         private readonly FontMaterial _fontMaterial;
-        private readonly Font _sofiaSans;
         private readonly TextBatch _textBatch;
+        private readonly AssetStore _assetStore;
         
         public UIRenderSystem(World world, Window window, GraphicsDevice graphicsDevice, AssetStore assetStore) : base(world)
         {
-            _sofiaSans = assetStore.GetFont("SofiaSans".GetHashCode());
+            _assetStore = assetStore;
             _textBatch = new TextBatch(graphicsDevice);
             _fontMaterial = new FontMaterial(window, graphicsDevice);
         }
@@ -41,7 +41,7 @@ namespace Hanamura
                 0,
                 -1
             );
-            _textBatch.Start(_sofiaSans);
+            _textBatch.Start(_assetStore.GetFont("SofiaSans".GetHashCode()));
             _textBatch.Add(
                 "Hanamura",
                 fontSize,

@@ -40,7 +40,6 @@ namespace Hanamura
                 vertShader,
                 fragShader
             );
-            pipelineCreateInfo.MultisampleState.SampleCount = RenderSystem.DefaultSampleCount;
             
             GraphicsPipeline = GraphicsPipeline.Create(graphicsDevice, pipelineCreateInfo);
             Sampler = Sampler.Create(graphicsDevice, SamplerCreateInfo.LinearWrap);

@@ -24,7 +24,7 @@ namespace Hanamura
             var cameraDirection = transform.Forward;
             var upDirection = Vector3.UnitY;
             var projection = Matrix4x4.CreatePerspectiveFieldOfView(
-                float.DegreesToRadians(75f),
+                float.DegreesToRadians(90f),
                 (float)_window.Width / _window.Height,
                 0.01f,
                 100f

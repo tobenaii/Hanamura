@@ -31,7 +31,10 @@ namespace Hanamura
                     EnableDepthWrite = true,
                     CompareOp = CompareOp.LessOrEqual,
                 },
-                MultisampleState = MultisampleState.None,
+                MultisampleState = new MultisampleState
+                {
+                    SampleCount = RenderSystem.DefaultSampleCount,
+                },
                 PrimitiveType = PrimitiveType.TriangleList,
                 RasterizerState = RasterizerState.CCW_CullBack,
                 VertexInputState = VertexInputState.CreateSingleBinding<VertexPositionNormalTexture>(),

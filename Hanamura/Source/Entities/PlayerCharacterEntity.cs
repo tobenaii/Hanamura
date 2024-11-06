@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using MoonTools.ECS;
+﻿using MoonTools.ECS;
 
 namespace Hanamura
 {
@@ -8,8 +7,8 @@ namespace Hanamura
         public static void Build(World world, Entity entity)
         {
             world.Set(entity, new StandardMaterialData("Capsule".GetHashCode(), "PixPal_BaseColor".GetHashCode()));
-            world.Set(entity, new Transform(Vector3.Zero, Quaternion.Identity));
-            world.Set(entity, new HasblobShadow());
+            world.Set(entity, new Transform());
+            world.Set(entity, new HasblobShadow(0.75f));
         }
     }
 }

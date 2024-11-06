@@ -1,6 +1,8 @@
-﻿using MoonTools.ECS;
+﻿using System.Numerics;
+using MoonTools.ECS;
 using MoonWorks;
 using MoonWorks.Graphics;
+using SDL3;
 
 namespace Hanamura
 {
@@ -22,30 +24,35 @@ namespace Hanamura
             var game = new Program(
                 windowCreateInfo,
                 frameLimiterSettings,
-                ShaderFormat.SPIRV
+                ShaderFormat.SPIRV,
+                Path.Join(args.Length > 0 ? args[0] : SDL.SDL_GetBasePath(), "Content/")
             );
             game.Run();
         }
 
+        private readonly AssetStore _assetStore;
         private readonly RenderSystem _renderSystem;
         private readonly List<MoonTools.ECS.System> _systems = new();
-        
+
         private Program(WindowCreateInfo windowCreateInfo, FrameLimiterSettings frameLimiterSettings,
-            ShaderFormat availableShaderFormats) :
+            ShaderFormat availableShaderFormats, string contentPath) :
             base(windowCreateInfo, frameLimiterSettings, availableShaderFormats, 120)
         {
             ShaderCross.Initialize();
+            _assetStore = new AssetStore(GraphicsDevice, contentPath);
             var world = new World();
             _systems.Add(new PlayerMovementSystem(world, Inputs));
             _systems.Add(new CameraFollowSystem(world));
             _systems.Add(new CameraUpdateSystem(world, MainWindow));
             _systems.Add(new GridMarkerPositionSystem(MainWindow, world, Inputs));
             
-            _renderSystem = new RenderSystem(world, new AssetStore(GraphicsDevice), GraphicsDevice, MainWindow);
+            _renderSystem = new RenderSystem(world, _assetStore, GraphicsDevice, MainWindow);
             
             world.Spawn<DirectionalLightEntity>();
             world.Spawn<PrototypeGroundEntity>();
-            var character = world.Spawn<PlayerCharacterEntity>();
+            world.Spawn<TreeEntity>();
+            var character = world.Spawn<PlayerCharacterEntity>()
+                .Set(Transform.FromPosition(new Vector3(0, 0, 2)));
             world.Spawn<PlayerControllerEntity>()
                 .Relate(character, new PlayerControllerTarget());
             world.Spawn<MainCameraEntity>()
@@ -55,6 +62,7 @@ namespace Hanamura
 
         protected override void Update(TimeSpan delta)
         {
+            _assetStore.CheckForReload();
             foreach (var system in _systems)
             {
                 system.Update(delta);

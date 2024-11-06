@@ -4,7 +4,6 @@
 };
 
 #define SHADOW_SOFTNESS 0.4     // Soft edge falloff
-#define SHADOW_RADIUS 0.275       // Size of the shadow in UV space
 #define SHADOW_INTENSITY 0.5    // Overall opacity
 
 float4 main(VSOutput input) : SV_Target {
@@ -13,9 +12,10 @@ float4 main(VSOutput input) : SV_Target {
     float distance = length(centeredUV);
     
     // Calculate shadow intensity with smooth falloff
-    float smoothWidth = SHADOW_RADIUS * SHADOW_SOFTNESS;
-    float innerRadius = SHADOW_RADIUS - smoothWidth;
-    float outerRadius = SHADOW_RADIUS + smoothWidth;
+    // Now using 1.0 as the outer radius (edge of quad)
+    float smoothWidth = SHADOW_SOFTNESS;
+    float innerRadius = 1.0 - smoothWidth * 2;
+    float outerRadius = 1.0;
     float shadowStrength = 1.0 - smoothstep(innerRadius, outerRadius, distance);
     
     // Apply anti-aliasing using fwidth

@@ -62,7 +62,8 @@ namespace Hanamura
             {
                 var renderData = Get<StandardMaterialData>(entity);
                 var transform = Get<Transform>(entity);
-                var model = Matrix4x4.CreateFromQuaternion(transform.Rotation) *
+                var model = Matrix4x4.CreateScale(transform.Scale) *
+                            Matrix4x4.CreateFromQuaternion(transform.Rotation) *
                             Matrix4x4.CreateTranslation(transform.Position);
                 var vertexUniforms = new TransformVertexUniform(model * viewProjection, model);
                 var mesh = _assetStore.GetMesh(renderData.MeshId);
@@ -78,7 +79,8 @@ namespace Hanamura
             foreach (var entity in _markerFilter.Entities)
             {
                 var markerTransform = World.Get<Transform>(entity);
-                var markerModel = Matrix4x4.CreateFromQuaternion(Quaternion.Identity) *
+                var markerModel = Matrix4x4.CreateScale(markerTransform.Scale) *
+                                  Matrix4x4.CreateFromQuaternion(Quaternion.Identity) *
                                   Matrix4x4.CreateTranslation(markerTransform.Position);
                 var markerVertexUniforms = new TransformVertexUniform(markerModel * viewProjection, markerModel);
                 var markerMesh = _assetStore.GetMesh("Quad".GetHashCode());
@@ -92,7 +94,9 @@ namespace Hanamura
             foreach (var entity in _blobShadowFilter.Entities)
             {
                 var blobShadowTransform = World.Get<Transform>(entity);
-                var blobShadowModel = Matrix4x4.CreateFromQuaternion(Quaternion.Identity) *
+                var blowShadow = World.Get<HasblobShadow>(entity);
+                var blobShadowModel = Matrix4x4.CreateScale(blowShadow.Radius) *
+                                      Matrix4x4.CreateFromQuaternion(Quaternion.Identity) *
                                       Matrix4x4.CreateTranslation(blobShadowTransform.Position with { Y = 0.01f });
                 var blobShadowVertexUniforms =
                     new TransformVertexUniform(blobShadowModel * viewProjection, blobShadowModel);

@@ -37,7 +37,7 @@ namespace Hanamura
                 vertShader,
                 fragShader
             );
-            pipelineCreateInfo.MultisampleState.SampleCount = RenderSystem.DefaultSampleCount;
+            pipelineCreateInfo.DepthStencilState.EnableDepthTest = false;
             
             GraphicsPipeline = GraphicsPipeline.Create(graphicsDevice, pipelineCreateInfo);
         }

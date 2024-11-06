@@ -11,7 +11,7 @@ namespace Hanamura
         public CameraUpdateSystem(World world, Window window) : base(world)
         {
             _projection= Matrix4x4.CreatePerspectiveFieldOfView(
-                float.DegreesToRadians(75f),
+                float.DegreesToRadians(90),
                 (float)window.Width / window.Height,
                 0.01f,
                 100f

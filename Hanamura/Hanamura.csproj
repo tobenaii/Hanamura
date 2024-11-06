@@ -9,6 +9,14 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
     </PropertyGroup>
+    <PropertyGroup>
+        <RunArguments Condition="'$(BuildingInsideVisualStudio)' == 'true' or '$(BuildingByReSharper)' == 'true'">$(MSBuildProjectDirectory)</RunArguments>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(BuildingInsideVisualStudio)' == 'true' or '$(BuildingByReSharper)' == 'true'">
+        <StartArguments>$(RunArguments)</StartArguments>
+    </PropertyGroup>
+
     <ItemGroup>
         <Content Include="Content\**\*.*">
             <Link>Content\%(RecursiveDir)%(Filename)%(Extension)</Link>
@@ -25,17 +33,6 @@
       <PackageReference Include="AssetRipper.SharpGLTF.Core" Version="1.0.2" />
       <PackageReference Include="AssetRipper.SharpGLTF.Runtime" Version="1.0.2" />
       <PackageReference Include="glTF2Loader" Version="1.1.4-alpha" />
-    </ItemGroup>
-    
-    <ItemGroup>
-      <Folder Include="Content\Models\" />
-    </ItemGroup>
-    
-    <ItemGroup>
-      <ClCompile Include="Content\Shaders\BlobShadow.frag.hlsl" />
-      <ClCompile Include="Content\Shaders\BlobShadow.vert.hlsl" />
-      <ClCompile Include="Content\Shaders\GridMarker.frag.hlsl" />
-      <ClCompile Include="Content\Shaders\GridMarker.vert.hlsl" />
     </ItemGroup>
     <Import Project=".\CopyMoonlibs.targets" />
 </Project>

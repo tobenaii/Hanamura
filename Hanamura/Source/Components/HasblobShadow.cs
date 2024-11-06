@@ -1,6 +1,9 @@
 ﻿namespace Hanamura
 {
-    public struct HasblobShadow
+    public record struct HasblobShadow(float Radius)
     {
+        public HasblobShadow() : this(1)
+        {
+        }
     }
 }

@@ -8,7 +8,7 @@ namespace Hanamura
         public static void Build(World world, Entity entity)
         {
             world.Set(entity, new DirectionalLight());
-            world.Set(entity, Transform.FromPositionRotation(Vector3.UnitY, Quaternion.CreateFromAxisAngle(Vector3.UnitX, float.DegreesToRadians(-65))));
+            world.Set(entity, Transform.FromRotation(Quaternion.CreateFromAxisAngle(Vector3.UnitX, float.DegreesToRadians(-65))));
         }
     }
 }
