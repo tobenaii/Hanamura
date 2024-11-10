@@ -13,10 +13,10 @@ namespace Hanamura
                 graphicsDevice,
                 assetStore.GetShader("BlobShadow.vert".GetHashCode()),
                 "main",
-                new ShaderCross.ShaderCreateInfo
+                ShaderCross.ShaderFormat.HLSL,
+                ShaderStage.Vertex,
+                new ShaderCross.ShaderResourceInfo()
                 {
-                    Stage = ShaderStage.Vertex,
-                    Format = ShaderCross.ShaderFormat.HLSL,
                     NumUniformBuffers = 1,
                 }
             );
@@ -25,11 +25,8 @@ namespace Hanamura
                 graphicsDevice,
                 assetStore.GetShader("BlobShadow.frag".GetHashCode()),
                 "main",
-                new ShaderCross.ShaderCreateInfo
-                {
-                    Stage = ShaderStage.Fragment,
-                    Format = ShaderCross.ShaderFormat.HLSL,
-                }
+                ShaderCross.ShaderFormat.HLSL,
+                ShaderStage.Fragment
             );
             
             var pipelineCreateInfo = HanaGraphics.GetStandardGraphicsPipelineCreateInfo(

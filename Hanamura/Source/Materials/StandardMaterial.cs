@@ -14,10 +14,10 @@ namespace Hanamura
                 graphicsDevice,
                 assetStore.GetShader("StandardShader.vert".GetHashCode()),
                 "main",
-                new ShaderCross.ShaderCreateInfo
+                ShaderCross.ShaderFormat.HLSL,
+                ShaderStage.Vertex,
+                new ShaderCross.ShaderResourceInfo()
                 {
-                    Stage = ShaderStage.Vertex,
-                    Format = ShaderCross.ShaderFormat.HLSL,
                     NumUniformBuffers = 1,
                 }
             );
@@ -26,10 +26,11 @@ namespace Hanamura
                 graphicsDevice,
                 assetStore.GetShader("StandardShader.frag".GetHashCode()),
                 "main",
-                new ShaderCross.ShaderCreateInfo
+                ShaderCross.ShaderFormat.HLSL,
+                ShaderStage.Fragment,
+                new ShaderCross.ShaderResourceInfo
                 {
-                    Stage = ShaderStage.Fragment,
-                    Format = ShaderCross.ShaderFormat.HLSL,
+
                     NumSamplers = 1,
                     NumUniformBuffers = 1
                 }
