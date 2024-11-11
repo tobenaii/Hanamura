@@ -5,8 +5,11 @@ namespace Hanamura
 {
     public abstract class Material
     {
-
         public GraphicsPipeline? GraphicsPipeline { get; private set; }
+        
+        protected virtual bool EnableDepthWrite => true;
+        protected virtual bool EnableDepthTest => true;
+        
         protected Material(AssetRef vertexShader, AssetRef fragmentShader, AssetStore assetStore, Window window, GraphicsDevice graphicsDevice)
         {
             BuildPipeline(window, graphicsDevice, assetStore, vertexShader, fragmentShader);
@@ -25,6 +28,8 @@ namespace Hanamura
                 vertexShader,
                 fragmentShader
             );
+            pipelineCreateInfo.DepthStencilState.EnableDepthWrite = EnableDepthWrite;
+            pipelineCreateInfo.DepthStencilState.EnableDepthTest = EnableDepthTest;
             GraphicsPipeline = GraphicsPipeline.Create(graphicsDevice, pipelineCreateInfo);
         }
     }
