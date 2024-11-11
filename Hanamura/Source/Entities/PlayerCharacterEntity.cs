@@ -4,11 +4,15 @@ namespace Hanamura
 {
     public struct PlayerCharacterEntity : IGameEntity
     {
-        public static void Build(World world, Entity entity)
+        public static void Configure(World world, Entity entity)
         {
-            world.Set(entity, new StandardMaterialData("Capsule".GetHashCode(), "PixPal_BaseColor".GetHashCode()));
+            world.Set(entity, new StandardMaterialConfig("Capsule", "PixPal_BaseColor"));
+            world.Set(entity, new BlobShadowConfig(0.75f));
+        }
+
+        public static void Init(World world, Entity entity)
+        {
             world.Set(entity, new Transform());
-            world.Set(entity, new HasblobShadow(0.75f));
         }
     }
 }

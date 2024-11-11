@@ -18,23 +18,24 @@ namespace Hanamura
 
         public override void Update(TimeSpan delta)
         {
-            var camera = World.GetSingletonEntity<MainCamera>();
+            var camera = World.GetSingletonEntity<MainCameraTag>();
+            var cameraConfig = World.Get<CameraConfig>(camera);
             var transform = World.Get<Transform>(camera);
             var cameraPosition = transform.Position;
             var cameraDirection = transform.Forward;
             var upDirection = Vector3.UnitY;
             var projection = Matrix4x4.CreatePerspectiveFieldOfView(
-                float.DegreesToRadians(90f),
-                (float)_window.Width / _window.Height,
-                0.01f,
-                100f
+                cameraConfig.Fov,
+                _window.Width / (float) _window.Height,
+                cameraConfig.Near,
+                cameraConfig.Far
             );
             var view = Matrix4x4.CreateLookAt(cameraPosition, cameraPosition + cameraDirection, upDirection);
             var mousePos = new Vector2(_inputs.Mouse.X, _inputs.Mouse.Y);
             var groundPoint = GetMouseGroundPoint(mousePos, view, projection, _window.Width, _window.Height);
             var position = new Vector3(float.Floor(groundPoint.X * 2) / 2 + 0.25f, 0, float.Floor(groundPoint.Z * 2) / 2 + 0.25f);
 
-            ref var cursorGroundPosition = ref World.Get<Transform>(World.GetSingletonEntity<GridMarkerData>());
+            ref var cursorGroundPosition = ref World.Get<Transform>(World.GetSingletonEntity<GridMarkerTag>());
             cursorGroundPosition.Position = position with { Y = 0.01f };
         }
 

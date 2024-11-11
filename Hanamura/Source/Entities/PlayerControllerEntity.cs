@@ -5,9 +5,13 @@ namespace Hanamura
 {
     public struct PlayerControllerEntity : IGameEntity
     {
-        public static void Build(World world, Entity entity)
+        public static void Configure(World world, Entity entity)
         {
-            world.Set(entity, new PlayerController(KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D));
+            world.Set(entity, new PlayerControllerConfig(KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D));
+        }
+
+        public static void Init(World world, Entity entity)
+        {
         }
     }
 }

@@ -11,8 +11,8 @@ namespace Hanamura
 
         public override void Update(TimeSpan delta)
         {
-            var camera = World.GetSingletonEntity<MainCamera>();
-            var target = World.OutRelationSingleton<CameraTarget>(camera);
+            var camera = World.GetSingletonEntity<MainCameraTag>();
+            var target = World.OutRelationSingleton<CameraTargetTag>(camera);
             
             var targetTransform = World.Get<Transform>(target);
             ref var cameraTransform = ref World.Get<Transform>(camera);

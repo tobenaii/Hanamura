@@ -3,41 +3,11 @@ using MoonWorks.Graphics;
 
 namespace Hanamura
 {
-    public class BlobShadowMaterial
+    public class BlobShadowMaterial : Material
     {
-        public readonly GraphicsPipeline GraphicsPipeline;
-
-        public BlobShadowMaterial(Window window, GraphicsDevice graphicsDevice, AssetStore assetStore)
+        public BlobShadowMaterial(Window window, GraphicsDevice graphicsDevice, AssetStore assetStore) : 
+            base("BlobShadow.vert", "BlobShadow.frag", assetStore, window, graphicsDevice)
         {
-            var vertShader = ShaderCross.Create(
-                graphicsDevice,
-                assetStore.GetShader("BlobShadow.vert".GetHashCode()),
-                "main",
-                ShaderCross.ShaderFormat.HLSL,
-                ShaderStage.Vertex,
-                new ShaderCross.ShaderResourceInfo()
-                {
-                    NumUniformBuffers = 1,
-                }
-            );
-
-            var fragShader = ShaderCross.Create(
-                graphicsDevice,
-                assetStore.GetShader("BlobShadow.frag".GetHashCode()),
-                "main",
-                ShaderCross.ShaderFormat.HLSL,
-                ShaderStage.Fragment
-            );
-            
-            var pipelineCreateInfo = HanaGraphics.GetStandardGraphicsPipelineCreateInfo(
-                window.SwapchainFormat,
-                vertShader,
-                fragShader
-            );
-            //disable depth writer
-            pipelineCreateInfo.DepthStencilState.EnableDepthWrite = false;
-            
-            GraphicsPipeline = GraphicsPipeline.Create(graphicsDevice, pipelineCreateInfo);
         }
     }
 }

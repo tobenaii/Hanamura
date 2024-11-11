@@ -4,14 +4,18 @@ namespace Hanamura
 {
     public struct TreeEntity : IGameEntity
     {
-        public static void Build(World world, Entity entity)
+        public static void Configure(World world, Entity entity)
+        {
+            world.Set(entity, new StandardMaterialConfig(
+                "Tree",
+                "PixPal_BaseColor"
+            ));
+            world.Set(entity, new BlobShadowConfig(4));
+        }
+
+        public static void Init(World world, Entity entity)
         {
             world.Set(entity, new Transform());
-            world.Set(entity, new StandardMaterialData(
-                "Tree".GetHashCode(),
-                "PixPal_BaseColor".GetHashCode()
-                ));
-            world.Set(entity, new HasblobShadow(4));
         }
     }
 }

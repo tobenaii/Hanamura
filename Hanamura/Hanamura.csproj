@@ -7,8 +7,13 @@
         <PublishAot>true</PublishAot>
         <InvariantGlobalization>true</InvariantGlobalization>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <LangVersion>latest</LangVersion>
+        <LangVersion>default</LangVersion>
     </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+        <PublishTrimmed>false</PublishTrimmed>
+    </PropertyGroup>
+    
     <PropertyGroup>
         <RunArguments Condition="'$(BuildingInsideVisualStudio)' == 'true' or '$(BuildingByReSharper)' == 'true'">$(MSBuildProjectDirectory)</RunArguments>
     </PropertyGroup>

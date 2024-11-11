@@ -3,40 +3,11 @@ using MoonWorks.Graphics;
 
 namespace Hanamura
 {
-    public class GridMarkerMaterial
+    public class GridMarkerMaterial : Material
     {
-        public readonly GraphicsPipeline GraphicsPipeline;
-
-        public GridMarkerMaterial(Window window, GraphicsDevice graphicsDevice, AssetStore assetStore)
+        public GridMarkerMaterial(Window window, GraphicsDevice graphicsDevice, AssetStore assetStore) 
+            : base("GridMarker.vert", "GridMarker.frag", assetStore, window, graphicsDevice)
         {
-            var vertShader = ShaderCross.Create(
-                graphicsDevice,
-                assetStore.GetShader("GridMarker.vert".GetHashCode()),
-                "main",
-                ShaderCross.ShaderFormat.HLSL,
-                ShaderStage.Vertex,
-                new ShaderCross.ShaderResourceInfo()
-                {
-                    NumUniformBuffers = 1,
-                }
-            );
-
-            var fragShader = ShaderCross.Create(
-                graphicsDevice,
-                assetStore.GetShader("GridMarker.frag".GetHashCode()),
-                "main",
-                ShaderCross.ShaderFormat.HLSL,
-                ShaderStage.Fragment
-            );
-            
-            var pipelineCreateInfo = HanaGraphics.GetStandardGraphicsPipelineCreateInfo(
-                window.SwapchainFormat,
-                vertShader,
-                fragShader
-            );
-            pipelineCreateInfo.DepthStencilState.EnableDepthTest = false;
-            
-            GraphicsPipeline = GraphicsPipeline.Create(graphicsDevice, pipelineCreateInfo);
         }
     }
 }

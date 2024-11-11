@@ -5,10 +5,14 @@ namespace Hanamura
 {
     public struct PrototypeGroundEntity : IGameEntity
     {
-        public static void Build(World world, Entity entity)
+        public static void Configure(World world, Entity entity)
         {
-            world.Set(entity, new StandardMaterialData("Ground".GetHashCode(), "prototype_512x512_green1".GetHashCode()));
-            world.Set(entity, Transform.FromPositionRotation(new Vector3(0, 0, 0), Quaternion.Identity));
+            world.Set(entity, new StandardMaterialConfig("Ground", "prototype_512x512_green1"));
+        }
+
+        public static void Init(World world, Entity entity)
+        {
+            world.Set(entity, new Transform());
         }
     }
 }

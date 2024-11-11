@@ -2,55 +2,61 @@
 using MoonWorks.Graphics;
 using MoonWorks.Graphics.Font;
 using SDL3;
+using Texture = MoonWorks.Graphics.Texture;
 
 namespace Hanamura
 {
     public class AssetStore
     {
         private readonly GraphicsDevice _graphicsDevice;
-        private readonly Dictionary<int, string> _shaders = new();
-        private readonly Dictionary<int, Texture> _textures = new();
-        private readonly Dictionary<int, Mesh> _meshes = new();
-        private readonly Dictionary<int, Font> _fonts = new();
+        private readonly Dictionary<AssetRef, Shader> _shaders = new();
+        private readonly Dictionary<AssetRef, Texture> _textures = new();
+        private readonly Dictionary<AssetRef, Mesh> _meshes = new();
+        private readonly Dictionary<AssetRef, Font> _fonts = new();
+        private readonly Dictionary<AssetRef, List<Action<Shader>>> _shaderReloadCallbacks = new();
         private readonly FileSystemWatcher _watcher;
-        private readonly string _assetPath;
 
-        private List<string> _requiresReload;
+        private readonly List<string> _requiresReload;
 
         public AssetStore(GraphicsDevice graphicsDevice, string contentPath)
         {
             _graphicsDevice = graphicsDevice;
-            _assetPath = contentPath;
             _requiresReload = new List<string>();
             
-            var texturePaths = Directory.GetFiles(_assetPath + "Textures", "*.png", SearchOption.AllDirectories);
+            var texturePaths = Directory.GetFiles(contentPath + "Textures", "*.png", SearchOption.AllDirectories);
             foreach (var path in texturePaths)
             {
                 LoadTexture(path, graphicsDevice);
             }
             
-            var modelPaths = Directory.GetFiles(_assetPath + "Models", "*.glb", SearchOption.AllDirectories);
+            var modelPaths = Directory.GetFiles(contentPath + "Models", "*.glb", SearchOption.AllDirectories);
             foreach (var path in modelPaths)
             {
                 LoadMesh(path, graphicsDevice);
             }
             
-            var fontPaths = Directory.GetFiles(_assetPath + "Fonts", "*.ttf", SearchOption.AllDirectories);
+            var fontPaths = Directory.GetFiles(contentPath + "Fonts", "*.ttf", SearchOption.AllDirectories);
             foreach (var path in fontPaths)
             {
                 LoadFont(path, graphicsDevice);
             }
             
-            var shaderPaths = Directory.GetFiles(_assetPath + "Shaders", "*.hlsl", SearchOption.AllDirectories);
+            var shaderPaths = Directory.GetFiles(contentPath + "Shaders", "*.hlsl", SearchOption.AllDirectories);
             foreach (var path in shaderPaths)
             {
-                _shaders.Add(Path.GetFileNameWithoutExtension(path).GetHashCode(), path);
+                LoadShader(path, graphicsDevice);
             }
             
             _watcher = new FileSystemWatcher(Path.GetFullPath(contentPath));
             _watcher.IncludeSubdirectories = true;
             _watcher.NotifyFilter = NotifyFilters.LastWrite;
-            _watcher.Changed += (sender, args) => { _requiresReload.Add(args.FullPath); };
+            _watcher.Changed += (_, args) =>
+            {
+                if (File.Exists(args.FullPath) && !args.FullPath.EndsWith('~') && !_requiresReload.Contains(args.FullPath))
+                {
+                    _requiresReload.Add(args.FullPath);
+                }
+            };
             _watcher.EnableRaisingEvents = true;
         }
 
@@ -59,7 +65,7 @@ namespace Hanamura
             if (_requiresReload.Count == 0) return;
             foreach (var path in _requiresReload)
             {
-                var id = Path.GetFileNameWithoutExtension(path).GetHashCode();
+                var id = Path.GetFileNameWithoutExtension(path);
                 if (_textures.ContainsKey(id))
                 {
                     _textures.Remove(id);
@@ -77,29 +83,49 @@ namespace Hanamura
                 }
                 else if (_shaders.ContainsKey(id))
                 {
-                    _shaders[id] = path;
+                    _shaders[id].Dispose();
+                    _shaders.Remove(id);
+                    LoadShader(path, _graphicsDevice);
+                    if (_shaderReloadCallbacks.TryGetValue(id, out var callbacks))
+                    {
+                        foreach (var callback in callbacks)
+                        {
+                            callback(_shaders[id]);
+                        }
+                    }
                 }
+                Console.WriteLine($"Reloaded {Path.GetFileName(path)}");
             }
-            Console.WriteLine("Reloaded assets");
             _requiresReload.Clear();
         }
         
-        public string GetShader(int shaderId)
+        public Shader GetShader(AssetRef shaderId)
         {
             return _shaders[shaderId];
         }
         
-        public Texture GetTexture(int textureId)
+        public void OnShaderReloadCallback(AssetRef shaderId, Action<Shader> callback)
+        {
+            if (!_shaderReloadCallbacks.TryGetValue(shaderId, out var value))
+            {
+                value = new List<Action<Shader>>();
+                _shaderReloadCallbacks.Add(shaderId, value);
+            }
+
+            value.Add(callback);
+        }
+        
+        public Texture GetTexture(AssetRef textureId)
         {
             return _textures[textureId];
         }
         
-        public Mesh GetMesh(int meshId)
+        public Mesh GetMesh(AssetRef meshId)
         {
             return _meshes[meshId];
         }
         
-        public Font GetFont(int fontId)
+        public Font GetFont(AssetRef fontId)
         {
             return _fonts[fontId];
         }
@@ -114,7 +140,7 @@ namespace Hanamura
             var buffer = NativeMemory.Alloc((nuint) length);
             var data = new Span<byte>(buffer, (int) length);
             fileStream.ReadExactly(data);
-            ImageUtils.ImageInfoFromBytes(data, out var width, out var height, out var _);
+            ImageUtils.ImageInfoFromBytes(data, out var width, out var height, out _);
                 
             var mipLevels = (uint)Math.Floor(Math.Log2(Math.Max(width, height))) + 1;
             var texture = Texture.Create2D(
@@ -159,6 +185,12 @@ namespace Hanamura
             resourceUploader.Upload();
             resourceUploader.Dispose();
             _meshes.Add(Path.GetFileNameWithoutExtension(path).GetHashCode(), new Mesh(vertexBuffer, indexBuffer));
+        }
+        
+        private void LoadShader(string path, GraphicsDevice graphicsDevice)
+        {
+            var shader = ShaderLoader.LoadShader(path, graphicsDevice);
+            _shaders.Add(Path.GetFileNameWithoutExtension(path).GetHashCode(), shader);
         }
     }
 }

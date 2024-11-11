@@ -14,9 +14,9 @@ namespace Hanamura
 
         public override void Update(TimeSpan delta)
         {
-            var controller = World.GetSingletonEntity<PlayerController>();
-            var target = World.OutRelationSingleton<PlayerControllerTarget>(controller);
-            var input = World.Get<PlayerController>(controller);
+            var controller = World.GetSingletonEntity<PlayerControllerConfig>();
+            var target = World.OutRelationSingleton<PlayerControllerTargetTag>(controller);
+            var input = World.Get<PlayerControllerConfig>(controller);
             const float moveSpeed = 2.5f;
             
             var transform = World.Get<Transform>(target);
