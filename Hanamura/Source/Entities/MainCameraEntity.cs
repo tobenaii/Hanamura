@@ -8,14 +8,15 @@ namespace Hanamura
         {
             world.Set(entity, new CameraConfig
             {
-                Fov = float.DegreesToRadians(75),
+                Fov = float.DegreesToRadians(50),
                 Near = 0.01f,
                 Far = 100f
             });
             world.Set(entity, new CameraFollowConfig
             {
-                Angle = float.DegreesToRadians(75),
-                Distance = 5
+                Height = 1.0f,
+                MinDistance = 5,
+                MaxDistance = 7.5f
             });
         }
 
@@ -24,6 +25,7 @@ namespace Hanamura
             world.Set(entity, new MainCameraTag());
             world.Set(entity, new CameraViewProjection());
             world.Set(entity, new Transform());
+            world.Set(entity, new CameraFollowState());
         }
     }
 }
