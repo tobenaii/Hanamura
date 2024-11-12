@@ -43,17 +43,23 @@ namespace Hanamura
             //MainWindow.SetPosition(1720, 1440 - 968);
 
             ShaderCross.Initialize();
-            _assetStore = new AssetStore(GraphicsDevice, contentPath);
+            _assetStore = new AssetStore(GraphicsDevice, MainWindow, contentPath);
+            _assetStore.RegisterMaterial<StandardMaterial>(MainWindow.SwapchainFormat, GraphicsDevice);
+            _assetStore.RegisterMaterial<GridMarkerMaterial>(MainWindow.SwapchainFormat, GraphicsDevice);
+            _assetStore.RegisterMaterial<BlobShadowMaterial>(MainWindow.SwapchainFormat, GraphicsDevice);
+            
+            _renderSystem = new RenderSystem(_world);
+
             _systems.Add(new HotReloadSystem(_world));
             _systems.Add(new PlayerMovementSystem(_world, Inputs));
             _systems.Add(new CameraFollowSystem(_world));
-            _systems.Add(new CameraProjectionSystem(_world, MainWindow));
-            _systems.Add(new GridMarkerPositionSystem(MainWindow, _world, Inputs));
+            _systems.Add(new CameraProjectionSystem(_world));
+            _systems.Add(new GridMarkerPositionSystem(_world, Inputs));
 
-            _renderSystem = new RenderSystem(_world, _assetStore, GraphicsDevice, MainWindow);
 
             _world.Spawn<DirectionalLightEntity>();
             _world.Spawn<PrototypeGroundEntity>();
+            _world.Spawn<GridMarkerEntity>();
             _world.Spawn<TreeEntity>()
                 .Set(Transform.FromPosition(new Vector3(0, 0, 0)));
             _world.Spawn<TreeEntity>()
@@ -62,13 +68,15 @@ namespace Hanamura
                 .Set(Transform.FromPosition(new Vector3(-2, 0, 0)));
             _world.Spawn<TreeEntity>()
                 .Set(Transform.FromPosition(new Vector3(0, 0, -2)));
+            _world.Spawn<MainWindow>()
+                .Set(new Rect(MainWindow.Position.Item1, MainWindow.Position.Item2, MainWindow.Width, MainWindow.Height));
+
             var character = _world.Spawn<PlayerCharacterEntity>()
                 .Set(Transform.FromPosition(new Vector3(0, 0, 2)));
             _world.Spawn<PlayerControllerEntity>()
                 .Relate(character, new PlayerControllerTargetTag());
             _world.Spawn<MainCameraEntity>()
                 .Relate(character, new CameraTargetTag());
-            _world.Spawn<GridMarkerEntity>();
         }
 
         protected override void Update(TimeSpan delta)
@@ -82,7 +90,7 @@ namespace Hanamura
         
         protected override void Draw(double alpha)
         {
-            _renderSystem.Draw(alpha);
+            _renderSystem.Draw(alpha, MainWindow, GraphicsDevice, _assetStore);
         }
     }
 }

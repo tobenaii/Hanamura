@@ -6,21 +6,21 @@ namespace Hanamura
 {
     public class CameraProjectionSystem : MoonTools.ECS.System
     {
-        private readonly Window _window;
-        
-        public CameraProjectionSystem(World world, Window window) : base(world)
+
+        public CameraProjectionSystem(World world) : base(world)
         {
-            _window = window;
         }
 
         public override void Update(TimeSpan delta)
         {
             var mainCameraEntity = World.GetSingletonEntity<MainCameraTag>();
-
+            var mainWindowEntity = World.GetSingletonEntity<MainWindowTag>();
+            var window = World.Get<Rect>(mainWindowEntity);
+            
             var cameraConfig = World.Get<CameraConfig>(mainCameraEntity);
             var projection = Matrix4x4.CreatePerspectiveFieldOfView(
                 cameraConfig.Fov,
-                (float)_window.Width / _window.Height,
+                (float)window.Width / window.Height,
                 cameraConfig.Near,
                 cameraConfig.Far
             );

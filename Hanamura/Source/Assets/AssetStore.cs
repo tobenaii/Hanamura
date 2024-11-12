@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using MoonWorks;
 using MoonWorks.Graphics;
 using MoonWorks.Graphics.Font;
 using SDL3;
@@ -8,20 +9,51 @@ namespace Hanamura
 {
     public class AssetStore
     {
+        private const SampleCount DEFAULT_SAMPLE_COUNT = SampleCount.Eight;
+
         private readonly GraphicsDevice _graphicsDevice;
-        private readonly Dictionary<AssetRef, Shader> _shaders = new();
         private readonly Dictionary<AssetRef, Texture> _textures = new();
         private readonly Dictionary<AssetRef, Mesh> _meshes = new();
         private readonly Dictionary<AssetRef, Font> _fonts = new();
-        private readonly Dictionary<AssetRef, List<Action<Shader>>> _shaderReloadCallbacks = new();
+        private readonly Dictionary<AssetRef, Shader> _shaders = new();
+        private readonly Dictionary<AssetRef, GraphicsPipeline> _materials = new();
+        private readonly Dictionary<SamplerType, Sampler> _samplers = new();
         private readonly FileSystemWatcher _watcher;
-
         private readonly List<string> _requiresReload;
+        
+        public FontMaterial FontMaterial { get; private set; }
+        public TextBatch TextBatch { get; private set; }
+        public Texture RenderTarget { get; private set; }
+        public Texture DepthTexture { get; private set; }
 
-        public AssetStore(GraphicsDevice graphicsDevice, string contentPath)
+        public AssetStore(GraphicsDevice graphicsDevice, Window window, string contentPath)
         {
             _graphicsDevice = graphicsDevice;
             _requiresReload = new List<string>();
+
+            _samplers.Add(SamplerType.LinearWrap, Sampler.Create(graphicsDevice, SamplerCreateInfo.LinearWrap));
+            
+            FontMaterial = new FontMaterial(window, graphicsDevice);
+            TextBatch = new TextBatch(graphicsDevice);
+            
+            RenderTarget = Texture.Create2D(
+                graphicsDevice,
+                window.Width,
+                window.Height,
+                window.SwapchainFormat,
+                TextureUsageFlags.ColorTarget,
+                1,
+                DEFAULT_SAMPLE_COUNT
+            );
+            DepthTexture = Texture.Create2D(
+                graphicsDevice,
+                window.Width,
+                window.Height,
+                TextureFormat.D32Float,
+                TextureUsageFlags.DepthStencilTarget | TextureUsageFlags.Sampler,
+                1,
+                DEFAULT_SAMPLE_COUNT
+            );
             
             var texturePaths = Directory.GetFiles(contentPath + "Textures", "*.png", SearchOption.AllDirectories);
             foreach (var path in texturePaths)
@@ -59,6 +91,25 @@ namespace Hanamura
             };
             _watcher.EnableRaisingEvents = true;
         }
+        
+        public void RegisterMaterial<T>(TextureFormat swapchainFormat, GraphicsDevice graphicsDevice) where T : IMaterial
+        {
+            if (_materials.TryGetValue(typeof(T).Name, out var material))
+            {
+                material.Dispose();
+            }
+            
+            var vertexShader = _shaders[T.VertexShader];
+            var fragmentShader = _shaders[T.FragmentShader];
+            var pipelineCreateInfo = GetStandardGraphicsPipelineCreateInfo(
+                swapchainFormat,
+                vertexShader,
+                fragmentShader
+            );
+            T.ConfigurePipeline(ref pipelineCreateInfo);
+            var newMaterial = GraphicsPipeline.Create(graphicsDevice, pipelineCreateInfo);
+            _materials.Add(typeof(T).Name, newMaterial);
+        }
 
         public void CheckForReload()
         {
@@ -86,13 +137,6 @@ namespace Hanamura
                     _shaders[id].Dispose();
                     _shaders.Remove(id);
                     LoadShader(path, _graphicsDevice);
-                    if (_shaderReloadCallbacks.TryGetValue(id, out var callbacks))
-                    {
-                        foreach (var callback in callbacks)
-                        {
-                            callback(_shaders[id]);
-                        }
-                    }
                 }
                 Console.WriteLine($"Reloaded {Path.GetFileName(path)}");
             }
@@ -102,17 +146,6 @@ namespace Hanamura
         public Shader GetShader(AssetRef shaderId)
         {
             return _shaders[shaderId];
-        }
-        
-        public void OnShaderReloadCallback(AssetRef shaderId, Action<Shader> callback)
-        {
-            if (!_shaderReloadCallbacks.TryGetValue(shaderId, out var value))
-            {
-                value = new List<Action<Shader>>();
-                _shaderReloadCallbacks.Add(shaderId, value);
-            }
-
-            value.Add(callback);
         }
         
         public Texture GetTexture(AssetRef textureId)
@@ -128,6 +161,16 @@ namespace Hanamura
         public Font GetFont(AssetRef fontId)
         {
             return _fonts[fontId];
+        }
+        
+        public GraphicsPipeline GetMaterial<T>() where T : IMaterial
+        {
+            return _materials[typeof(T).Name];
+        }
+        
+        public Sampler GetSampler(SamplerType type)
+        {
+            return _samplers[type];
         }
 
         private unsafe void LoadTexture(string path, GraphicsDevice graphicsDevice)
@@ -191,6 +234,44 @@ namespace Hanamura
         {
             var shader = ShaderLoader.LoadShader(path, graphicsDevice);
             _shaders.Add(Path.GetFileNameWithoutExtension(path).GetHashCode(), shader);
+        }
+
+        private static GraphicsPipelineCreateInfo GetStandardGraphicsPipelineCreateInfo(
+            TextureFormat swapchainFormat,
+            Shader vertShader,
+            Shader fragShader)
+        {
+            return new GraphicsPipelineCreateInfo
+            {
+                TargetInfo = new GraphicsPipelineTargetInfo
+                {
+                    ColorTargetDescriptions =
+                    [
+                        new ColorTargetDescription
+                        {
+                            Format = swapchainFormat,
+                            BlendState = ColorTargetBlendState.PremultipliedAlphaBlend
+                        }
+                    ],
+                    DepthStencilFormat = TextureFormat.D32Float,
+                    HasDepthStencilTarget = true
+                },
+                DepthStencilState = new DepthStencilState
+                {
+                    EnableDepthTest = true,
+                    EnableDepthWrite = true,
+                    CompareOp = CompareOp.LessOrEqual,
+                },
+                MultisampleState = new MultisampleState
+                {
+                    SampleCount = DEFAULT_SAMPLE_COUNT,
+                },
+                PrimitiveType = PrimitiveType.TriangleList,
+                RasterizerState = RasterizerState.CCW_CullBack,
+                VertexInputState = VertexInputState.CreateSingleBinding<VertexPositionNormalTexture>(),
+                VertexShader = vertShader,
+                FragmentShader = fragShader,
+            };
         }
     }
 }

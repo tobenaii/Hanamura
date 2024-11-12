@@ -10,7 +10,7 @@ namespace Hanamura
             world.Set(entity, new BlobShadowConfig(0.75f));
         }
 
-        public static void Init(World world, Entity entity)
+        public static void SetState(World world, Entity entity)
         {
             world.Set(entity, new Transform());
         }

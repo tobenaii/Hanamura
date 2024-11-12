@@ -9,7 +9,7 @@ namespace Hanamura
             var entity = world.CreateEntity();
             world.Set(entity, default(T));
             T.Configure(world, entity);
-            T.Init(world, entity);
+            T.SetState(world, entity);
             return new EntityBuilder(world, entity);
         }
     }

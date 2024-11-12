@@ -8,19 +8,17 @@ namespace Hanamura
 {
     public class UIRenderSystem : Renderer
     {
-        private readonly FontMaterial _fontMaterial;
-        private readonly TextBatch _textBatch;
-        private readonly AssetStore _assetStore;
-        
-        public UIRenderSystem(World world, Window window, GraphicsDevice graphicsDevice, AssetStore assetStore) : base(world)
+        public UIRenderSystem(World world) : base(world)
         {
-            _assetStore = assetStore;
-            _textBatch = new TextBatch(graphicsDevice);
-            _fontMaterial = new FontMaterial(window, graphicsDevice);
         }
         
-        public void Render(double alpha, Window window, CommandBuffer cmdBuf, Texture swapchainTexture)
+        public void Render(double alpha, CommandBuffer cmdBuf, Texture swapchainTexture, AssetStore assetStore)
         {
+            var mainWindow = GetSingletonEntity<MainWindowTag>();
+            var window = Get<Rect>(mainWindow);
+            var fontMaterial = assetStore.FontMaterial;
+            var textBatch = assetStore.TextBatch;
+            
             var renderPass = cmdBuf.BeginRenderPass(
                 new ColorTargetInfo()
                 {
@@ -31,7 +29,7 @@ namespace Hanamura
             );
             
             const int fontSize = 48;
-            renderPass.BindGraphicsPipeline(_fontMaterial.GraphicsPipeline);
+            renderPass.BindGraphicsPipeline(fontMaterial.GraphicsPipeline);
             var textModel = Matrix4x4.CreateTranslation(window.Width / 2f, fontSize, 0);
             var textProj = Matrix4x4.CreateOrthographicOffCenter(
                 0,
@@ -41,16 +39,16 @@ namespace Hanamura
                 0,
                 -1
             );
-            _textBatch.Start(_assetStore.GetFont("SofiaSans".GetHashCode()));
-            _textBatch.Add(
+            textBatch.Start(assetStore.GetFont("SofiaSans".GetHashCode()));
+            textBatch.Add(
                 "Hanamura",
                 fontSize,
                 Color.White,
                 HorizontalAlignment.Center,
                 VerticalAlignment.Middle
             );
-            _textBatch.UploadBufferData(cmdBuf);
-            _textBatch.Render(cmdBuf, renderPass, textModel * textProj);
+            textBatch.UploadBufferData(cmdBuf);
+            textBatch.Render(cmdBuf, renderPass, textModel * textProj);
             cmdBuf.EndRenderPass(renderPass);
         }
     }

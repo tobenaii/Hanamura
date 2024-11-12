@@ -1,36 +1,14 @@
-﻿using MoonWorks;
-using MoonWorks.Graphics;
+﻿using MoonWorks.Graphics;
 
 namespace Hanamura
 {
-    public abstract class Material
+    public interface IMaterial
     {
-        public GraphicsPipeline? GraphicsPipeline { get; private set; }
+        public static abstract AssetRef VertexShader { get; }
+        public static abstract AssetRef FragmentShader { get; }
         
-        protected virtual bool EnableDepthWrite => true;
-        protected virtual bool EnableDepthTest => true;
-        
-        protected Material(AssetRef vertexShader, AssetRef fragmentShader, AssetStore assetStore, Window window, GraphicsDevice graphicsDevice)
+        public static virtual void ConfigurePipeline(ref GraphicsPipelineCreateInfo pipelineCreateInfo)
         {
-            BuildPipeline(window, graphicsDevice, assetStore, vertexShader, fragmentShader);
-            assetStore.OnShaderReloadCallback(vertexShader, _ => BuildPipeline(window, graphicsDevice, assetStore, vertexShader, fragmentShader));
-            assetStore.OnShaderReloadCallback(fragmentShader, _ => BuildPipeline(window, graphicsDevice, assetStore, vertexShader, fragmentShader));
-        }
-        
-        private void BuildPipeline(Window window, GraphicsDevice graphicsDevice, AssetStore assetStore, AssetRef vertexShaderAsset, AssetRef fragmentShaderAsset)
-        {
-            GraphicsPipeline?.Dispose();
-            
-            var vertexShader = assetStore.GetShader(vertexShaderAsset);
-            var fragmentShader = assetStore.GetShader(fragmentShaderAsset);
-            var pipelineCreateInfo = HanaGraphics.GetStandardGraphicsPipelineCreateInfo(
-                window.SwapchainFormat,
-                vertexShader,
-                fragmentShader
-            );
-            pipelineCreateInfo.DepthStencilState.EnableDepthWrite = EnableDepthWrite;
-            pipelineCreateInfo.DepthStencilState.EnableDepthTest = EnableDepthTest;
-            GraphicsPipeline = GraphicsPipeline.Create(graphicsDevice, pipelineCreateInfo);
         }
     }
 }

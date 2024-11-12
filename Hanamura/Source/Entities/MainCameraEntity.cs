@@ -19,7 +19,7 @@ namespace Hanamura
             });
         }
 
-        public static void Init(World world, Entity entity)
+        public static void SetState(World world, Entity entity)
         {
             world.Set(entity, new MainCameraTag());
             world.Set(entity, new CameraViewProjection());

@@ -1,15 +1,16 @@
-﻿using MoonWorks;
-using MoonWorks.Graphics;
+﻿using MoonWorks.Graphics;
 
 namespace Hanamura
 {
-    public class BlobShadowMaterial : Material
+    public struct BlobShadowMaterial : IMaterial
     {
-        protected override bool EnableDepthWrite => false;
+        
+        public static AssetRef VertexShader => "BlobShadow.vert";
+        public static AssetRef FragmentShader => "BlobShadow.frag";
 
-        public BlobShadowMaterial(Window window, GraphicsDevice graphicsDevice, AssetStore assetStore) : 
-            base("BlobShadow.vert", "BlobShadow.frag", assetStore, window, graphicsDevice)
+        public static void ConfigurePipeline(ref GraphicsPipelineCreateInfo pipelineCreateInfo)
         {
+            pipelineCreateInfo.DepthStencilState.EnableDepthWrite = false;
         }
     }
 }

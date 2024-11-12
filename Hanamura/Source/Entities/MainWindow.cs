@@ -2,7 +2,7 @@
 
 namespace Hanamura
 {
-    public struct GridMarkerEntity : IGameEntity
+    public struct MainWindow : IGameEntity
     {
         public static void Configure(World world, Entity entity)
         {
@@ -10,8 +10,7 @@ namespace Hanamura
 
         public static void SetState(World world, Entity entity)
         {
-            world.Set(entity, new GridMarkerTag());
-            world.Set(entity, new Transform());
+            world.Set(entity, new MainWindowTag());
         }
     }
 }

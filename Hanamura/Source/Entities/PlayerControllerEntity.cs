@@ -10,7 +10,7 @@ namespace Hanamura
             world.Set(entity, new PlayerControllerConfig(KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D));
         }
 
-        public static void Init(World world, Entity entity)
+        public static void SetState(World world, Entity entity)
         {
         }
     }

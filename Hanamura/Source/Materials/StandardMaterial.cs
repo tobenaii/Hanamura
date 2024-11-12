@@ -1,16 +1,8 @@
-﻿using MoonWorks;
-using MoonWorks.Graphics;
-
-namespace Hanamura
+﻿namespace Hanamura
 {
-    public class StandardMaterial : Material
+    public struct StandardMaterial : IMaterial
     {
-        public readonly Sampler Sampler;
-
-        public StandardMaterial(Window window, GraphicsDevice graphicsDevice, AssetStore assetStore) 
-            : base("StandardShader.vert", "StandardShader.frag", assetStore, window, graphicsDevice)
-        {
-            Sampler = Sampler.Create(graphicsDevice, SamplerCreateInfo.LinearWrap);
-        }
+        public static AssetRef VertexShader => "StandardShader.vert";
+        public static AssetRef FragmentShader => "StandardShader.frag";
     }
 }

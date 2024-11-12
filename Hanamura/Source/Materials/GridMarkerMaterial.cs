@@ -1,15 +1,15 @@
-﻿using MoonWorks;
-using MoonWorks.Graphics;
+﻿using MoonWorks.Graphics;
 
 namespace Hanamura
 {
-    public class GridMarkerMaterial : Material
+    public struct GridMarkerMaterial : IMaterial
     {
-        protected override bool EnableDepthTest => false;
-        
-        public GridMarkerMaterial(Window window, GraphicsDevice graphicsDevice, AssetStore assetStore) 
-            : base("GridMarker.vert", "GridMarker.frag", assetStore, window, graphicsDevice)
+        public static AssetRef VertexShader => "GridMarker.vert";
+        public static AssetRef FragmentShader => "GridMarker.frag";
+
+        public static void ConfigurePipeline(ref GraphicsPipelineCreateInfo pipelineCreateInfo)
         {
+            pipelineCreateInfo.DepthStencilState.EnableDepthTest = false;
         }
     }
 }

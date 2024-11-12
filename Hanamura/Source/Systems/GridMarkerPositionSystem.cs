@@ -1,38 +1,37 @@
 ﻿using System.Numerics;
 using MoonTools.ECS;
-using MoonWorks;
 using MoonWorks.Input;
 
 namespace Hanamura
 {
     public class GridMarkerPositionSystem : MoonTools.ECS.System
     {
-        private Inputs _inputs;
-        private Window _window;
+        private readonly Inputs _inputs;
 
-        public GridMarkerPositionSystem(Window window, World world, Inputs inputs) : base(world)
+        public GridMarkerPositionSystem(World world, Inputs inputs) : base(world)
         {
             _inputs = inputs;
-            _window = window;
         }
 
         public override void Update(TimeSpan delta)
         {
-            var camera = World.GetSingletonEntity<MainCameraTag>();
-            var cameraConfig = World.Get<CameraConfig>(camera);
-            var transform = World.Get<Transform>(camera);
+            var mainCamera = World.GetSingletonEntity<MainCameraTag>();
+            var mainWindow = World.GetSingletonEntity<MainWindowTag>();
+            var window = World.Get<Rect>(mainWindow);
+            var cameraConfig = World.Get<CameraConfig>(mainCamera);
+            var transform = World.Get<Transform>(mainCamera);
             var cameraPosition = transform.Position;
             var cameraDirection = transform.Forward;
             var upDirection = Vector3.UnitY;
             var projection = Matrix4x4.CreatePerspectiveFieldOfView(
                 cameraConfig.Fov,
-                _window.Width / (float) _window.Height,
+                window.Width / (float) window.Height,
                 cameraConfig.Near,
                 cameraConfig.Far
             );
             var view = Matrix4x4.CreateLookAt(cameraPosition, cameraPosition + cameraDirection, upDirection);
             var mousePos = new Vector2(_inputs.Mouse.X, _inputs.Mouse.Y);
-            var groundPoint = GetMouseGroundPoint(mousePos, view, projection, _window.Width, _window.Height);
+            var groundPoint = GetMouseGroundPoint(mousePos, view, projection, window.Width, window.Height);
             var position = new Vector3(float.Floor(groundPoint.X * 2) / 2 + 0.25f, 0, float.Floor(groundPoint.Z * 2) / 2 + 0.25f);
 
             ref var cursorGroundPosition = ref World.Get<Transform>(World.GetSingletonEntity<GridMarkerTag>());
