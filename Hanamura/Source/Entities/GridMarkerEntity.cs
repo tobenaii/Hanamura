@@ -12,6 +12,7 @@ namespace Hanamura
         {
             world.Set(entity, new GridMarkerTag());
             world.Set(entity, new Transform());
+            world.Set(entity, new FixedRenderTag());
         }
     }
 }

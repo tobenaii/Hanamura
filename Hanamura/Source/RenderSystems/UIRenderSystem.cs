@@ -12,7 +12,7 @@ namespace Hanamura
         {
         }
         
-        public void Render(double alpha, CommandBuffer cmdBuf, Texture swapchainTexture, AssetStore assetStore)
+        public void Render(CommandBuffer cmdBuf, Texture swapchainTexture, AssetStore assetStore)
         {
             var mainWindow = GetSingletonEntity<MainWindowTag>();
             var window = Get<Rect>(mainWindow);

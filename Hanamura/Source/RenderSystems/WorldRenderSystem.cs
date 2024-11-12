@@ -1,18 +1,17 @@
 ﻿using System.Numerics;
 using MoonTools.ECS;
-using MoonWorks;
 using MoonWorks.Graphics;
 using Filter = MoonTools.ECS.Filter;
 
 namespace Hanamura
 {
-    public class MainRenderSystem : Renderer
+    public class WorldRenderSystem : Renderer
     {
         private readonly Filter _meshFilter;
         private readonly Filter _markerFilter;
         private readonly Filter _blobShadowFilter;
         
-        public MainRenderSystem(World world) : base(world)
+        public WorldRenderSystem(World world) : base(world)
         {
             _meshFilter = FilterBuilder
                 .Include<StandardMaterialConfig>()
@@ -28,12 +27,12 @@ namespace Hanamura
                 .Build();
         }
 
-        public void Render(double alpha, CommandBuffer cmdBuf, Texture swapchainTexture, Texture renderTarget, Texture depthTexture, AssetStore assetStore)
+        public void Render(CommandBuffer cmdBuf, Texture swapchainTexture, Texture renderTarget, Texture depthTexture, AssetStore assetStore)
         {
             if (_meshFilter.Empty) return;
             var mainCamera = GetSingletonEntity<MainCameraTag>();
             var viewProjection = Get<CameraViewProjection>(mainCamera).ViewProjection;
-            var lightTransform = Get<Transform>(GetSingletonEntity<DirectionalLightTag>());
+            var lightTransform = Get<RenderTransform>(GetSingletonEntity<DirectionalLightTag>()).Transform;
             
             var renderPass = cmdBuf.BeginRenderPass(
                 new ColorTargetInfo()
@@ -54,7 +53,7 @@ namespace Hanamura
             foreach (var entity in _meshFilter.Entities)
             {
                 var renderData = Get<StandardMaterialConfig>(entity);
-                var transform = Get<Transform>(entity);
+                var transform = Get<RenderTransform>(entity).Transform;
                 var model = Matrix4x4.CreateScale(transform.Scale) *
                             Matrix4x4.CreateFromQuaternion(transform.Rotation) *
                             Matrix4x4.CreateTranslation(transform.Position);
@@ -71,7 +70,7 @@ namespace Hanamura
             renderPass.BindGraphicsPipeline(assetStore.GetMaterial<GridMarkerMaterial>());
             foreach (var entity in _markerFilter.Entities)
             {
-                var markerTransform = World.Get<Transform>(entity);
+                var markerTransform = World.Get<RenderTransform>(entity).Transform;
                 var markerModel = Matrix4x4.CreateScale(markerTransform.Scale) *
                                   Matrix4x4.CreateFromQuaternion(Quaternion.Identity) *
                                   Matrix4x4.CreateTranslation(markerTransform.Position);
@@ -86,7 +85,7 @@ namespace Hanamura
             renderPass.BindGraphicsPipeline(assetStore.GetMaterial<BlobShadowMaterial>());
             foreach (var entity in _blobShadowFilter.Entities)
             {
-                var blobShadowTransform = World.Get<Transform>(entity);
+                var blobShadowTransform = World.Get<RenderTransform>(entity).Transform;
                 var blowShadow = World.Get<BlobShadowConfig>(entity);
                 var blobShadowModel = Matrix4x4.CreateScale(blowShadow.Radius) *
                                       Matrix4x4.CreateFromQuaternion(Quaternion.Identity) *

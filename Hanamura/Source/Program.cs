@@ -37,10 +37,9 @@ namespace Hanamura
 
         private Program(WindowCreateInfo windowCreateInfo, FrameLimiterSettings frameLimiterSettings,
             ShaderFormat availableShaderFormats, string contentPath) :
-            base(windowCreateInfo, frameLimiterSettings, availableShaderFormats, 120)
+            base(windowCreateInfo, frameLimiterSettings, availableShaderFormats)
         {
             MainWindow.SetPosition(1720, 236);
-            //MainWindow.SetPosition(1720, 1440 - 968);
 
             ShaderCross.Initialize();
             _assetStore = new AssetStore(GraphicsDevice, MainWindow, contentPath);
@@ -51,12 +50,11 @@ namespace Hanamura
             _renderSystem = new RenderSystem(_world);
 
             _systems.Add(new HotReloadSystem(_world));
+            _systems.Add(new UpdatePreviousTransformSystem(_world));
             _systems.Add(new PlayerMovementSystem(_world, Inputs));
             _systems.Add(new CameraFollowSystem(_world));
-            _systems.Add(new CameraProjectionSystem(_world));
             _systems.Add(new GridMarkerPositionSystem(_world, Inputs));
-
-
+            
             _world.Spawn<DirectionalLightEntity>();
             _world.Spawn<PrototypeGroundEntity>();
             _world.Spawn<GridMarkerEntity>();
@@ -78,7 +76,7 @@ namespace Hanamura
             _world.Spawn<MainCameraEntity>()
                 .Relate(character, new CameraTargetTag());
         }
-
+        
         protected override void Update(TimeSpan delta)
         {
             _assetStore.CheckForReload();
