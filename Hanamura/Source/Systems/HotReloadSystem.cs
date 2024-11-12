@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿#if DEBUG
+using System.Reflection;
 using MoonTools.ECS;
 
 [assembly: System.Reflection.Metadata.MetadataUpdateHandler(typeof(Hanamura.HotReloadSystem))]
@@ -64,3 +65,4 @@ namespace Hanamura
         }
     }
 }
+#endif

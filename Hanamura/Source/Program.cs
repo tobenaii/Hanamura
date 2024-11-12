@@ -2,6 +2,7 @@
 using MoonTools.ECS;
 using MoonWorks;
 using MoonWorks.Graphics;
+using MoonWorks.Input;
 using SDL3;
 
 namespace Hanamura
@@ -39,6 +40,12 @@ namespace Hanamura
             ShaderFormat availableShaderFormats, string contentPath) :
             base(windowCreateInfo, frameLimiterSettings, availableShaderFormats)
         {
+            /*SDL.SDL_SetGPUSwapchainParameters(GraphicsDevice.Handle,
+                MainWindow.Handle,
+                SDL.SDL_GPUSwapchainComposition.SDL_GPU_SWAPCHAINCOMPOSITION_SDR,
+                SDL.SDL_GPUPresentMode.SDL_GPU_PRESENTMODE_IMMEDIATE
+            );*/
+            MainWindow.SetRelativeMouseMode(true);
             MainWindow.SetPosition(1720, 236);
 
             ShaderCross.Initialize();
@@ -48,11 +55,13 @@ namespace Hanamura
             _assetStore.RegisterMaterial<BlobShadowMaterial>(MainWindow.SwapchainFormat, GraphicsDevice);
             
             _renderSystem = new RenderSystem(_world);
-
+            
+#if DEBUG
             _systems.Add(new HotReloadSystem(_world));
+#endif
             _systems.Add(new UpdatePreviousTransformSystem(_world));
             _systems.Add(new PlayerMovementSystem(_world, Inputs));
-            _systems.Add(new CameraFollowSystem(_world));
+            _systems.Add(new CameraFollowSystem(_world, Inputs));
             _systems.Add(new GridMarkerPositionSystem(_world, Inputs));
             
             _world.Spawn<DirectionalLightEntity>();
@@ -79,6 +88,15 @@ namespace Hanamura
         
         protected override void Update(TimeSpan delta)
         {
+            if (Inputs.Keyboard.IsPressed(KeyCode.Escape))
+            {
+                MainWindow.SetRelativeMouseMode(false);
+            }
+            else if (MainWindow.RelativeMouseMode == false && Inputs.Mouse.LeftButton.IsPressed)
+            {
+                MainWindow.SetRelativeMouseMode(true);
+            }
+            
             _assetStore.CheckForReload();
             foreach (var system in _systems)
             {
