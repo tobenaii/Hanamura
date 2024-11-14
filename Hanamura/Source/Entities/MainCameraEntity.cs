@@ -24,7 +24,7 @@ namespace Hanamura
         {
             world.Set(entity, new MainCameraTag());
             world.Set(entity, new CameraViewProjection());
-            world.Set(entity, new Transform());
+            world.Set(entity, new LocalTransform());
             world.Set(entity, new CameraFollowState());
         }
     }

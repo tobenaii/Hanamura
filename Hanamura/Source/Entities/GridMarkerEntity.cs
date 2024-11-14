@@ -11,7 +11,7 @@ namespace Hanamura
         public static void SetState(World world, Entity entity)
         {
             world.Set(entity, new GridMarkerTag());
-            world.Set(entity, new Transform());
+            world.Set(entity, new LocalTransform());
             world.Set(entity, new FixedRenderTag());
         }
     }

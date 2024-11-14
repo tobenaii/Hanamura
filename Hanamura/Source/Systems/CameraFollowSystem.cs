@@ -17,9 +17,9 @@ namespace Hanamura
             var camera = World.GetSingletonEntity<MainCameraTag>();
             var target = World.OutRelationSingleton<CameraTargetTag>(camera);
             
-            var targetPosition = World.Get<Transform>(target).Position;
+            var targetPosition = World.Get<LocalTransform>(target).Position;
             targetPosition.Y += World.Get<CameraFollowConfig>(camera).Height;
-            ref var cameraTransform = ref World.Get<Transform>(camera);
+            ref var cameraTransform = ref World.Get<LocalTransform>(camera);
             var followConfig = World.Get<CameraFollowConfig>(camera);
             ref var followState = ref World.Get<CameraFollowState>(camera);
             followState.Yaw -= _inputs.Mouse.DeltaX * 0.001f;

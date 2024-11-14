@@ -34,11 +34,12 @@ namespace Hanamura
         private readonly AssetStore _assetStore;
         private readonly RenderSystem _renderSystem;
         private readonly List<MoonTools.ECS.System> _systems = new();
-        private readonly World _world = new();
+        private readonly World _world;
+        private readonly GameWorld _game;
 
         private Program(WindowCreateInfo windowCreateInfo, FrameLimiterSettings frameLimiterSettings,
             ShaderFormat availableShaderFormats, string contentPath) :
-            base(windowCreateInfo, frameLimiterSettings, availableShaderFormats)
+            base(windowCreateInfo, frameLimiterSettings, availableShaderFormats, 60)
         {
             /*SDL.SDL_SetGPUSwapchainParameters(GraphicsDevice.Handle,
                 MainWindow.Handle,
@@ -49,7 +50,10 @@ namespace Hanamura
             MainWindow.SetPosition(1720, 236);
 
             ShaderCross.Initialize();
+            _world = new World();
             _assetStore = new AssetStore(GraphicsDevice, MainWindow, contentPath);
+            _game = new GameWorld(_assetStore, _world);
+            
             _assetStore.RegisterMaterial<StandardMaterial>(MainWindow.SwapchainFormat, GraphicsDevice);
             _assetStore.RegisterMaterial<GridMarkerMaterial>(MainWindow.SwapchainFormat, GraphicsDevice);
             _assetStore.RegisterMaterial<BlobShadowMaterial>(MainWindow.SwapchainFormat, GraphicsDevice);
@@ -59,30 +63,31 @@ namespace Hanamura
 #if DEBUG
             _systems.Add(new HotReloadSystem(_world));
 #endif
-            _systems.Add(new UpdatePreviousTransformSystem(_world));
+            _systems.Add(new UpdateTransformStateSystem(_world));
             _systems.Add(new PlayerMovementSystem(_world, Inputs));
             _systems.Add(new CameraFollowSystem(_world, Inputs));
             _systems.Add(new GridMarkerPositionSystem(_world, Inputs));
+            _systems.Add(new TransformSystem(_world));
             
-            _world.Spawn<DirectionalLightEntity>();
-            _world.Spawn<PrototypeGroundEntity>();
-            _world.Spawn<GridMarkerEntity>();
-            _world.Spawn<TreeEntity>()
-                .Set(Transform.FromPosition(new Vector3(0, 0, 0)));
-            _world.Spawn<TreeEntity>()
-                .Set(Transform.FromPosition(new Vector3(2, 0, 0)));
-            _world.Spawn<TreeEntity>()
-                .Set(Transform.FromPosition(new Vector3(-2, 0, 0)));
-            _world.Spawn<TreeEntity>()
-                .Set(Transform.FromPosition(new Vector3(0, 0, -2)));
-            _world.Spawn<MainWindow>()
+            _game.Spawn<DirectionalLightEntity>();
+            _game.Spawn<PrototypeGroundEntity>();
+            _game.Spawn<GridMarkerEntity>();
+            _game.Spawn<TreeEntity>()
+                .Set(LocalTransform.FromPosition(new Vector3(0, 0, 0)));
+            _game.Spawn<TreeEntity>()
+                .Set(LocalTransform.FromPosition(new Vector3(2, 0, 0)));
+            _game.Spawn<TreeEntity>()
+                .Set(LocalTransform.FromPosition(new Vector3(-2, 0, 0)));
+            _game.Spawn<TreeEntity>()
+                .Set(LocalTransform.FromPosition(new Vector3(0, 0, -2)));
+            _game.Spawn<MainWindow>()
                 .Set(new Rect(MainWindow.Position.Item1, MainWindow.Position.Item2, MainWindow.Width, MainWindow.Height));
 
-            var character = _world.Spawn<PlayerCharacterEntity>()
-                .Set(Transform.FromPosition(new Vector3(0, 0, 2)));
-            _world.Spawn<PlayerControllerEntity>()
+            var character = _game.Spawn<PlayerCharacterEntity>()
+                .Set(LocalTransform.FromPosition(new Vector3(0, 0, 2)));
+            _game.Spawn<PlayerControllerEntity>()
                 .Relate(character, new PlayerControllerTargetTag());
-            _world.Spawn<MainCameraEntity>()
+            _game.Spawn<MainCameraEntity>()
                 .Relate(character, new CameraTargetTag());
         }
         

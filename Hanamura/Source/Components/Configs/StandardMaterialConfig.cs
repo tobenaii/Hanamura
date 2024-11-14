@@ -1,4 +1,4 @@
 ﻿namespace Hanamura
 {
-    public readonly record struct StandardMaterialConfig(AssetRef Mesh, AssetRef Texture);
+    public readonly record struct StandardMaterialConfig(AssetRef Texture);
 }

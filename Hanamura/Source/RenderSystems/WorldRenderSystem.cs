@@ -15,6 +15,7 @@ namespace Hanamura
         {
             _meshFilter = FilterBuilder
                 .Include<StandardMaterialConfig>()
+                .Include<MeshConfig>()
                 .Include<Transform>()
                 .Build();
             _markerFilter = FilterBuilder
@@ -32,7 +33,7 @@ namespace Hanamura
             if (_meshFilter.Empty) return;
             var mainCamera = GetSingletonEntity<MainCameraTag>();
             var viewProjection = Get<CameraViewProjection>(mainCamera).ViewProjection;
-            var lightTransform = Get<RenderTransform>(GetSingletonEntity<DirectionalLightTag>()).Transform;
+            var lightTransform = Get<Transform>(GetSingletonEntity<DirectionalLightTag>());
             
             var renderPass = cmdBuf.BeginRenderPass(
                 new ColorTargetInfo()
@@ -52,14 +53,13 @@ namespace Hanamura
             renderPass.BindGraphicsPipeline(assetStore.GetMaterial<StandardMaterial>());
             foreach (var entity in _meshFilter.Entities)
             {
-                var renderData = Get<StandardMaterialConfig>(entity);
-                var transform = Get<RenderTransform>(entity).Transform;
-                var model = Matrix4x4.CreateScale(transform.Scale) *
-                            Matrix4x4.CreateFromQuaternion(transform.Rotation) *
-                            Matrix4x4.CreateTranslation(transform.Position);
+                var material = Get<StandardMaterialConfig>(entity);
+                var meshConfig = Get<MeshConfig>(entity);
+                var transform = Get<Transform>(entity);
+                var model = transform.Value;
                 var vertexUniforms = new TransformVertexUniform(model * viewProjection, model);
-                var mesh = assetStore.GetMesh(renderData.Mesh);
-                var texture = assetStore.GetTexture(renderData.Texture);
+                var mesh = assetStore.GetMesh(meshConfig.Mesh);
+                var texture = assetStore.GetTexture(material.Texture);
                 renderPass.BindVertexBuffer(mesh.VertexBuffer);
                 renderPass.BindIndexBuffer(mesh.IndexBuffer, IndexElementSize.ThirtyTwo);
                 renderPass.BindFragmentSampler(new TextureSamplerBinding(texture, assetStore.GetSampler(SamplerType.LinearWrap)));
@@ -70,12 +70,10 @@ namespace Hanamura
             renderPass.BindGraphicsPipeline(assetStore.GetMaterial<GridMarkerMaterial>());
             foreach (var entity in _markerFilter.Entities)
             {
-                var markerTransform = World.Get<RenderTransform>(entity).Transform;
-                var markerModel = Matrix4x4.CreateScale(markerTransform.Scale) *
-                                  Matrix4x4.CreateFromQuaternion(Quaternion.Identity) *
-                                  Matrix4x4.CreateTranslation(markerTransform.Position);
+                var markerTransform = World.Get<Transform>(entity);
+                var markerModel = markerTransform.Value;
                 var markerVertexUniforms = new TransformVertexUniform(markerModel * viewProjection, markerModel);
-                var markerMesh = assetStore.GetMesh("Quad");
+                var markerMesh = assetStore.GetMesh("Quad.Plane");
                 renderPass.BindVertexBuffer(markerMesh.VertexBuffer);
                 renderPass.BindIndexBuffer(markerMesh.IndexBuffer, IndexElementSize.ThirtyTwo);
                 cmdBuf.PushVertexUniformData(markerVertexUniforms);
@@ -85,14 +83,14 @@ namespace Hanamura
             renderPass.BindGraphicsPipeline(assetStore.GetMaterial<BlobShadowMaterial>());
             foreach (var entity in _blobShadowFilter.Entities)
             {
-                var blobShadowTransform = World.Get<RenderTransform>(entity).Transform;
+                var blobShadowTransform = World.Get<Transform>(entity);
                 var blowShadow = World.Get<BlobShadowConfig>(entity);
                 var blobShadowModel = Matrix4x4.CreateScale(blowShadow.Radius) *
                                       Matrix4x4.CreateFromQuaternion(Quaternion.Identity) *
                                       Matrix4x4.CreateTranslation(blobShadowTransform.Position with { Y = 0.01f });
                 var blobShadowVertexUniforms =
                     new TransformVertexUniform(blobShadowModel * viewProjection, blobShadowModel);
-                var blobShadowMesh = assetStore.GetMesh("BlobShadow");
+                var blobShadowMesh = assetStore.GetMesh("BlobShadow.Plane");
                 renderPass.BindVertexBuffer(blobShadowMesh.VertexBuffer);
                 renderPass.BindIndexBuffer(blobShadowMesh.IndexBuffer, IndexElementSize.ThirtyTwo);
                 cmdBuf.PushVertexUniformData(blobShadowVertexUniforms);

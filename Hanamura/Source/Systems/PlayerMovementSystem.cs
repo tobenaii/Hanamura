@@ -18,11 +18,11 @@ namespace Hanamura
             var mainCamera = World.GetSingletonEntity<MainCameraTag>();
             var controller = World.GetSingletonEntity<PlayerControllerConfig>();
             var target = World.OutRelationSingleton<PlayerControllerTargetTag>(controller);
-            var cameraTransform = World.Get<Transform>(mainCamera);
+            var cameraTransform = World.Get<LocalTransform>(mainCamera);
             var input = World.Get<PlayerControllerConfig>(controller);
             const float moveSpeed = 2.5f;
             
-            var transform = World.Get<Transform>(target);
+            var transform = World.Get<LocalTransform>(target);
             var forward = cameraTransform.Forward;
             forward.Y = 0;
             forward = Vector3.Normalize(forward);

@@ -39,7 +39,7 @@ namespace Hanamura
                 0,
                 -1
             );
-            textBatch.Start(assetStore.GetFont("SofiaSans".GetHashCode()));
+            textBatch.Start(assetStore.GetFont("SofiaSans"));
             textBatch.Add(
                 "Hanamura",
                 fontSize,

@@ -19,7 +19,7 @@ namespace Hanamura
             var mainWindow = World.GetSingletonEntity<MainWindowTag>();
             var window = World.Get<Rect>(mainWindow);
             var cameraConfig = World.Get<CameraConfig>(mainCamera);
-            var transform = World.Get<Transform>(mainCamera);
+            var transform = World.Get<LocalTransform>(mainCamera);
             var cameraPosition = transform.Position;
             var cameraDirection = transform.Forward;
             var upDirection = Vector3.UnitY;
@@ -34,7 +34,7 @@ namespace Hanamura
             var groundPoint = GetMouseGroundPoint(mousePos, view, projection, window.Width, window.Height);
             var position = new Vector3(float.Floor(groundPoint.X * 2) / 2 + 0.25f, 0, float.Floor(groundPoint.Z * 2) / 2 + 0.25f);
 
-            ref var cursorGroundPosition = ref World.Get<Transform>(World.GetSingletonEntity<GridMarkerTag>());
+            ref var cursorGroundPosition = ref World.Get<LocalTransform>(World.GetSingletonEntity<GridMarkerTag>());
             cursorGroundPosition.Position = position with { Y = 0.01f };
         }
 

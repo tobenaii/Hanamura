@@ -17,6 +17,7 @@ namespace Hanamura
         private readonly Dictionary<AssetRef, Font> _fonts = new();
         private readonly Dictionary<AssetRef, Shader> _shaders = new();
         private readonly Dictionary<AssetRef, GraphicsPipeline> _materials = new();
+        private readonly Dictionary<AssetRef, GameObject> _gameObjects = new();
         private readonly Dictionary<SamplerType, Sampler> _samplers = new();
         private readonly FileSystemWatcher _watcher;
         private readonly List<string> _requiresReload;
@@ -168,6 +169,11 @@ namespace Hanamura
             return _materials[typeof(T).Name];
         }
         
+        public GameObject GetGameObject(AssetRef gameObjectId)
+        {
+            return _gameObjects[gameObjectId];
+        }
+        
         public Sampler GetSampler(SamplerType type)
         {
             return _samplers[type];
@@ -204,7 +210,7 @@ namespace Hanamura
             };
             resourceUploader.SetTextureDataFromCompressed(region, data);
             NativeMemory.Free(buffer);
-            _textures.Add(Path.GetFileNameWithoutExtension(path).GetHashCode(), texture);
+            _textures.Add(Path.GetFileNameWithoutExtension(path), texture);
             SDL.SDL_GenerateMipmapsForGPUTexture(cmdBuf.Handle, texture.Handle);
             resourceUploader.Upload();
             resourceUploader.Dispose();
@@ -214,26 +220,34 @@ namespace Hanamura
         private void LoadFont(string path, GraphicsDevice graphicsDevice)
         {
             var font = Font.Load(graphicsDevice, path);
-            _fonts.Add(Path.GetFileNameWithoutExtension(path).GetHashCode(), font);
+            _fonts.Add(Path.GetFileNameWithoutExtension(path), font);
         }
 
         private void LoadMesh(string path, GraphicsDevice graphicsDevice)
         {
-            var meshData = GLTFLoader.Load(path);
-            var resourceUploader = new ResourceUploader(graphicsDevice, 1024 * 1024);
-            var vertexBuffer = resourceUploader.CreateBuffer(meshData.Vertices.AsSpan(), BufferUsageFlags.Vertex);
-            var indexBuffer = resourceUploader.CreateBuffer(meshData.Indices.AsSpan(), BufferUsageFlags.Index);
-            vertexBuffer.Name = Path.GetFileNameWithoutExtension(path) + " Vertices";
-            indexBuffer.Name = Path.GetFileNameWithoutExtension(path) + " Indices";
-            resourceUploader.Upload();
-            resourceUploader.Dispose();
-            _meshes.Add(Path.GetFileNameWithoutExtension(path).GetHashCode(), new Mesh(vertexBuffer, indexBuffer));
+            var meshes = GLTFLoader.Load(path);
+            var meshNames = new GameObject.Part[meshes.Length];
+            var i = 0;
+            foreach (var meshData in meshes)
+            {
+                var resourceUploader = new ResourceUploader(graphicsDevice, 1024 * 1024);
+                var vertexBuffer = resourceUploader.CreateBuffer(meshData.Vertices.AsSpan(), BufferUsageFlags.Vertex);
+                var indexBuffer = resourceUploader.CreateBuffer(meshData.Indices.AsSpan(), BufferUsageFlags.Index);
+                vertexBuffer.Name = Path.GetFileNameWithoutExtension(path) + " Vertices";
+                indexBuffer.Name = Path.GetFileNameWithoutExtension(path) + " Indices";
+                resourceUploader.Upload();
+                resourceUploader.Dispose();
+                _meshes.Add(Path.GetFileNameWithoutExtension(path) + "." + meshData.Name, new Mesh(vertexBuffer, indexBuffer));
+                meshNames[i] = new GameObject.Part(meshData.Name, i, meshData.Transform, meshData.Children);
+                i++;
+            }
+            _gameObjects.Add(Path.GetFileNameWithoutExtension(path), new GameObject(meshNames));
         }
         
         private void LoadShader(string path, GraphicsDevice graphicsDevice)
         {
             var shader = ShaderLoader.LoadShader(path, graphicsDevice);
-            _shaders.Add(Path.GetFileNameWithoutExtension(path).GetHashCode(), shader);
+            _shaders.Add(Path.GetFileNameWithoutExtension(path), shader);
         }
 
         private static GraphicsPipelineCreateInfo GetStandardGraphicsPipelineCreateInfo(

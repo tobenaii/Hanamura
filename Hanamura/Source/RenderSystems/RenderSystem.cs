@@ -11,53 +11,51 @@ namespace Hanamura
         private readonly WorldRenderSystem _worldRenderSystem;
         private readonly UIRenderSystem _uiRenderSystem;
         private readonly Filter _transformFilter;
-        private readonly Filter _withoutRenderTransformFilter;
 
         public RenderSystem(World world) :
             base(world)
         {
             _transformFilter = FilterBuilder
                 .Include<Transform>()
-                .Include<PreviousTransform>()
-                .Include<RenderTransform>()
+                .Include<TransformState>()
                 .Build();
             
-            _withoutRenderTransformFilter = FilterBuilder
-                .Include<Transform>()
-                .Exclude<RenderTransform>()
-                .Build();
             _worldRenderSystem = new WorldRenderSystem(world);
             _uiRenderSystem = new UIRenderSystem(world);
         }
 
         public void Draw(double alpha, Window window, GraphicsDevice graphicsDevice, AssetStore assetStore)
         {
-            foreach (var entity in _withoutRenderTransformFilter.Entities)
-            {
-                World.Set(entity, new RenderTransform());
-            }
-            
             foreach (var entity in _transformFilter.Entities)
             {
-                var previousTransform = World.Get<PreviousTransform>(entity);
-                var currentTransform = World.Get<Transform>(entity);
-                ref var renderTransform = ref World.Get<RenderTransform>(entity);
+                var transformState = World.Get<TransformState>(entity);
+                ref var transform = ref World.Get<Transform>(entity);
                 if (!World.Has<FixedRenderTag>(entity))
                 {
-                    renderTransform.Transform = new Transform(
-                        Position: Vector3.Lerp(previousTransform.Transform.Position, currentTransform.Position,
-                            (float)alpha),
-                        Rotation: Quaternion.Slerp(previousTransform.Transform.Rotation, currentTransform.Rotation,
-                            (float)alpha),
-                        Scale: Vector3.Lerp(previousTransform.Transform.Scale, currentTransform.Scale, (float)alpha)
-                    );
+                    var prevScale = transformState.Previous.Scale;
+                    var prevRotation = transformState.Previous.Rotation;
+                    var prevTranslation = transformState.Previous.Position;
+                    
+                    var currentScale = transformState.Current.Scale;
+                    var currentRotation = transformState.Current.Rotation;
+                    var currentTranslation = transformState.Current.Position;
+                    
+                    var interpolatedScale = Vector3.Lerp(prevScale, currentScale, (float)alpha);
+                    var interpolatedPosition = Vector3.Lerp(prevTranslation, currentTranslation, (float)alpha);
+                    var interpolatedRotation = Quaternion.Slerp(prevRotation, currentRotation, (float)alpha);
+
+
+                    transform = new Transform(
+                        Matrix4x4.CreateScale(interpolatedScale) *
+                        Matrix4x4.CreateFromQuaternion(interpolatedRotation) *
+                        Matrix4x4.CreateTranslation(interpolatedPosition));
                 }
                 else
                 {
-                    renderTransform.Transform = currentTransform;
+                    transform = transformState.Current;
                 }
             }
-            
+
             var mainCameraEntity = World.GetSingletonEntity<MainCameraTag>();
             
             var cameraConfig = World.Get<CameraConfig>(mainCameraEntity);
@@ -68,9 +66,9 @@ namespace Hanamura
                 cameraConfig.Far
             );
             
-            var cameraTransform = Get<RenderTransform>(mainCameraEntity).Transform;
+            var cameraTransform = Get<Transform>(mainCameraEntity);
             var cameraPosition = cameraTransform.Position;
-            var cameraDirection = Vector3.Transform(new Vector3(0, 0, -1), cameraTransform.Rotation);
+            var cameraDirection = cameraTransform.Forward;
             var upDirection = Vector3.UnitY;
             var view = Matrix4x4.CreateLookAt(cameraPosition, cameraPosition + cameraDirection, upDirection);
             
