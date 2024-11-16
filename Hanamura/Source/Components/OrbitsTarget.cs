@@ -6,13 +6,10 @@ namespace Hanamura
         Vector3 Offset,
         float Yaw,
         float Pitch,
-        float MinPitch,
-        float MaxPitch,
-        float MinDistance,
-        float MaxDistance)
+        float Distance)
     {
-        public OrbitsTarget(Vector3 offset, float minPitch, float maxPitch, float minDistance, float maxDistance)
-            : this(offset, 0, 0, minPitch, maxPitch, minDistance, maxDistance)
+        public OrbitsTarget(Vector3 offset, float pitch, float distance)
+            : this(offset, 0, pitch, distance)
         {
         }
     }

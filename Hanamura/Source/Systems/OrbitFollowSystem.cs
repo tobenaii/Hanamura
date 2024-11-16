@@ -6,11 +6,8 @@ namespace Hanamura
 {
     public class OrbitFollowSystem : MoonTools.ECS.System
     {
-        private readonly Inputs _inputs;
-        
-        public OrbitFollowSystem(World world, Inputs inputs) : base(world)
+        public OrbitFollowSystem(World world) : base(world)
         {
-            _inputs = inputs;
         }
 
         public override void Update(TimeSpan delta)
@@ -25,16 +22,11 @@ namespace Hanamura
                 targetPosition += orbit.Offset;
                 
                 ref var transform = ref World.Get<LocalTransform>(entity);
-                
-                var minPitch = orbit.MinPitch;
-                var maxPitch = orbit.MaxPitch;
             
-                orbit.Pitch = Math.Clamp(orbit.Pitch, minPitch, maxPitch);
                 transform.Rotation = Quaternion.CreateFromYawPitchRoll(orbit.Yaw, -orbit.Pitch, 0);
                 transform.Position = targetPosition;
             
-                var distance = float.Lerp(orbit.MinDistance, orbit.MaxDistance, (orbit.Pitch - minPitch) / (maxPitch - minPitch));
-                transform.Position -= transform.Forward * distance;
+                transform.Position -= transform.Forward * orbit.Distance;
                 
                 World.Relate(entity, target, orbit);
             }

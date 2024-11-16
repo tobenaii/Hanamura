@@ -62,7 +62,8 @@ namespace Hanamura
             
             _systems.Add(new UpdateTransformStateSystem(_world));
             _systems.Add(new PlayerInputSystem(_world, Inputs));
-            _systems.Add(new OrbitFollowSystem(_world, Inputs));
+            _systems.Add(new CharacterMovementSystem(_world));
+            _systems.Add(new OrbitFollowSystem(_world));
             _systems.Add(new GridMarkerPositionSystem(_world, Inputs));
             _systems.Add(new TransformSystem(_world));
 
@@ -106,6 +107,7 @@ namespace Hanamura
             var entity = _world.CreateEntity();
             _world.Set(entity, new HasBlobShadow(0.75f));
             _world.Set(entity, new LocalTransform());
+            _world.Set(entity, new CharacterMovement());
             _modelManipulator.AddModel(entity, "PlayerCharacter", new StandardMaterial("PixPal_BaseColor"));
             
             return entity;
@@ -118,7 +120,7 @@ namespace Hanamura
             _world.Set(entity, new CameraViewProjection());
             _world.Set(entity, new LocalTransform());
             _world.Set(entity, new CameraSettings(float.DegreesToRadians(50), 0.01f, 100f));
-            _world.Relate(entity, playerCharacter, new OrbitsTarget(Vector3.UnitY * 1f, 0.2f, 0.75f, 5f, 7.5f));
+            _world.Relate(entity, playerCharacter, new OrbitsTarget(Vector3.UnitY * 1f, 0, 0.75f, 7.5f));
             return entity;
         }
         

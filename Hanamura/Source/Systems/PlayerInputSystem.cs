@@ -23,57 +23,59 @@ namespace Hanamura
             var movementTarget = World.OutRelationSingleton<ControlsMovement>(playerInput);
             var orbitTarget = World.OutRelationSingleton<ControlsOrbit>(playerInput);
             
-            ref var movementTransform = ref World.Get<LocalTransform>(movementTarget);
+            ref var movement = ref World.Get<CharacterMovement>(movementTarget);
             var orbit = World.GetRelationData<OrbitsTarget>(orbitTarget, movementTarget);
             
-            ref var transform = ref World.Get<LocalTransform>(movementTarget);
             ref var relativeTransform = ref World.Get<LocalTransform>(orbitTarget);
             var forward = relativeTransform.Forward;
             forward.Y = 0;
             forward = Vector3.Normalize(forward);
             var right = -Vector3.Cross(Vector3.UnitY, forward);
 
-            
+            var direction = Vector3.Zero;
             if (_inputs.Keyboard.IsDown(KeyCode.W))
             {
-                transform.Position += forward * moveSpeed * (float) delta.TotalSeconds;
+                direction += forward * moveSpeed * (float) delta.TotalSeconds;
             }
 
             if (_inputs.Keyboard.IsDown(KeyCode.S))
             {
-                transform.Position -= forward * moveSpeed * (float) delta.TotalSeconds;
+                direction -= forward * moveSpeed * (float) delta.TotalSeconds;
             }
             
             if (_inputs.Keyboard.IsDown(KeyCode.A))
             {
-                transform.Position -= right * moveSpeed * (float) delta.TotalSeconds;
+                direction -= right * moveSpeed * (float) delta.TotalSeconds;
             }
             
             if (_inputs.Keyboard.IsDown(KeyCode.D))
             {
-                transform.Position += right * moveSpeed * (float) delta.TotalSeconds;
+                direction += right * moveSpeed * (float) delta.TotalSeconds;
+            }
+            
+            var leftStick = new Vector2(_inputs.GetGamepad(0).AxisValue(AxisCode.LeftX), _inputs.GetGamepad(0).AxisValue(AxisCode.LeftY));
+            var length = leftStick.Length();
+            if (length > 0.3f)
+            {
+                direction += right * moveSpeed * _inputs.GetGamepad(0).AxisValue(AxisCode.LeftX) * (float) delta.TotalSeconds;
+            }
+            if (length > 0.3f)
+            {
+                direction += forward * moveSpeed * -_inputs.GetGamepad(0).AxisValue(AxisCode.LeftY) * (float) delta.TotalSeconds;
+            }
+            
+            movement.Movement = new Vector2(direction.X, direction.Z);
+            
+            if (direction != Vector3.Zero)
+            {
+                movement.Facing = new Vector2(direction.X, direction.Z);
             }
             
             orbit.Yaw -= _inputs.Mouse.DeltaX * 0.001f;
-            orbit.Pitch += _inputs.Mouse.DeltaY * 0.001f;
-            
-            if (Math.Abs(_inputs.GetGamepad(0).AxisValue(AxisCode.LeftX)) > 0.1f)
-            {
-                transform.Position += right * moveSpeed * _inputs.GetGamepad(0).AxisValue(AxisCode.LeftX) * (float) delta.TotalSeconds;
-            }
-            if (Math.Abs(_inputs.GetGamepad(0).AxisValue(AxisCode.LeftY)) > 0.1f)
-            {
-                transform.Position += forward * moveSpeed * -_inputs.GetGamepad(0).AxisValue(AxisCode.LeftY) * (float) delta.TotalSeconds;
-            }
             
             if (Math.Abs(_inputs.GetGamepad(0).AxisValue(AxisCode.RightX)) > 0.1f)
             {
                 orbit.Yaw -= _inputs.GetGamepad(0).AxisValue(AxisCode.RightX) * yawSpeed;
-            }
-
-            if (Math.Abs(_inputs.GetGamepad(0).AxisValue(AxisCode.RightY)) > 0.1f)
-            {
-                orbit.Pitch += _inputs.GetGamepad(0).AxisValue(AxisCode.RightY) * pitchSpeed;
             }
             
             World.Relate(orbitTarget, movementTarget, orbit);
