@@ -15,10 +15,6 @@ namespace Hanamura
 
         public override void Update(TimeSpan delta)
         {           
-            const float moveSpeed = 2.5f;
-            const float pitchSpeed = 0.025f;
-            const float yawSpeed = 0.05f;
-            
             var playerInput = World.GetSingletonEntity<PlayerInput>();
             var movementTarget = World.OutRelationSingleton<ControlsMovement>(playerInput);
             var orbitTarget = World.OutRelationSingleton<ControlsOrbit>(playerInput);
@@ -35,33 +31,33 @@ namespace Hanamura
             var direction = Vector3.Zero;
             if (_inputs.Keyboard.IsDown(KeyCode.W))
             {
-                direction += forward * moveSpeed * (float) delta.TotalSeconds;
+                direction += forward;
             }
 
             if (_inputs.Keyboard.IsDown(KeyCode.S))
             {
-                direction -= forward * moveSpeed * (float) delta.TotalSeconds;
+                direction -= forward;
             }
             
             if (_inputs.Keyboard.IsDown(KeyCode.A))
             {
-                direction -= right * moveSpeed * (float) delta.TotalSeconds;
+                direction -= right;
             }
             
             if (_inputs.Keyboard.IsDown(KeyCode.D))
             {
-                direction += right * moveSpeed * (float) delta.TotalSeconds;
+                direction += right;
             }
             
             var leftStick = new Vector2(_inputs.GetGamepad(0).AxisValue(AxisCode.LeftX), _inputs.GetGamepad(0).AxisValue(AxisCode.LeftY));
             var length = leftStick.Length();
             if (length > 0.3f)
             {
-                direction += right * moveSpeed * _inputs.GetGamepad(0).AxisValue(AxisCode.LeftX) * (float) delta.TotalSeconds;
+                direction += right * _inputs.GetGamepad(0).AxisValue(AxisCode.LeftX);
             }
             if (length > 0.3f)
             {
-                direction += forward * moveSpeed * -_inputs.GetGamepad(0).AxisValue(AxisCode.LeftY) * (float) delta.TotalSeconds;
+                direction += forward * -_inputs.GetGamepad(0).AxisValue(AxisCode.LeftY);
             }
             
             movement.Movement = new Vector2(direction.X, direction.Z);
@@ -75,7 +71,7 @@ namespace Hanamura
             
             if (Math.Abs(_inputs.GetGamepad(0).AxisValue(AxisCode.RightX)) > 0.1f)
             {
-                orbit.Yaw -= _inputs.GetGamepad(0).AxisValue(AxisCode.RightX) * yawSpeed;
+                orbit.Yaw -= _inputs.GetGamepad(0).AxisValue(AxisCode.RightX);
             }
             
             World.Relate(orbitTarget, movementTarget, orbit);

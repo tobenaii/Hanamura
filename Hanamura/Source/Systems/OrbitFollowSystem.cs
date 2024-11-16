@@ -27,8 +27,6 @@ namespace Hanamura
                 transform.Position = targetPosition;
             
                 transform.Position -= transform.Forward * orbit.Distance;
-                
-                World.Relate(entity, target, orbit);
             }
         }
     }
