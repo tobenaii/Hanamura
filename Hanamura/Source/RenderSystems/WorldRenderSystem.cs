@@ -14,16 +14,16 @@ namespace Hanamura
         public WorldRenderSystem(World world) : base(world)
         {
             _meshFilter = FilterBuilder
-                .Include<StandardMaterialConfig>()
-                .Include<MeshConfig>()
+                .Include<StandardMaterial>()
+                .Include<HasMesh>()
                 .Include<Transform>()
                 .Build();
             _markerFilter = FilterBuilder
-                .Include<GridMarkerTag>()
+                .Include<HasGridMarker>()
                 .Include<Transform>()
                 .Build();
             _blobShadowFilter = FilterBuilder
-                .Include<BlobShadowConfig>()
+                .Include<HasBlobShadow>()
                 .Include<Transform>()
                 .Build();
         }
@@ -31,9 +31,9 @@ namespace Hanamura
         public void Render(CommandBuffer cmdBuf, Texture swapchainTexture, Texture renderTarget, Texture depthTexture, AssetStore assetStore)
         {
             if (_meshFilter.Empty) return;
-            var mainCamera = GetSingletonEntity<MainCameraTag>();
+            var mainCamera = GetSingletonEntity<MainRenderCamera>();
             var viewProjection = Get<CameraViewProjection>(mainCamera).ViewProjection;
-            var lightTransform = Get<Transform>(GetSingletonEntity<DirectionalLightTag>());
+            var lightTransform = Get<Transform>(GetSingletonEntity<DirectionalLight>());
             
             var renderPass = cmdBuf.BeginRenderPass(
                 new ColorTargetInfo()
@@ -53,8 +53,8 @@ namespace Hanamura
             renderPass.BindGraphicsPipeline(assetStore.GetMaterial<StandardMaterial>());
             foreach (var entity in _meshFilter.Entities)
             {
-                var material = Get<StandardMaterialConfig>(entity);
-                var meshConfig = Get<MeshConfig>(entity);
+                var material = Get<StandardMaterial>(entity);
+                var meshConfig = Get<HasMesh>(entity);
                 var transform = Get<Transform>(entity);
                 var model = transform.Value;
                 var vertexUniforms = new TransformVertexUniform(model * viewProjection, model);
@@ -84,7 +84,7 @@ namespace Hanamura
             foreach (var entity in _blobShadowFilter.Entities)
             {
                 var blobShadowTransform = World.Get<Transform>(entity);
-                var blowShadow = World.Get<BlobShadowConfig>(entity);
+                var blowShadow = World.Get<HasBlobShadow>(entity);
                 var blobShadowModel = Matrix4x4.CreateScale(blowShadow.Radius) *
                                       Matrix4x4.CreateFromQuaternion(Quaternion.Identity) *
                                       Matrix4x4.CreateTranslation(blobShadowTransform.Position with { Y = 0.01f });

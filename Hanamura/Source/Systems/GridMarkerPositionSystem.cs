@@ -15,30 +15,30 @@ namespace Hanamura
 
         public override void Update(TimeSpan delta)
         {
-            var mainCamera = World.GetSingletonEntity<MainCameraTag>();
-            var mainWindow = World.GetSingletonEntity<MainWindowTag>();
-            var window = World.Get<Rect>(mainWindow);
-            var cameraConfig = World.Get<CameraConfig>(mainCamera);
+            //TODO: Fix this up to target in front of the player instead of using mouse
+            /*var mainCamera = World.GetSingletonEntity<MainRenderCamera>();
+            var renderSurface = World.Get<RenderSurface>(mainCamera);
+            var cameraConfig = World.Get<CameraSettings>(mainCamera);
             var transform = World.Get<LocalTransform>(mainCamera);
             var cameraPosition = transform.Position;
             var cameraDirection = transform.Forward;
             var upDirection = Vector3.UnitY;
             var projection = Matrix4x4.CreatePerspectiveFieldOfView(
                 cameraConfig.Fov,
-                window.Width / (float) window.Height,
+                renderSurface.Width / (float) renderSurface.Height,
                 cameraConfig.Near,
                 cameraConfig.Far
             );
             var view = Matrix4x4.CreateLookAt(cameraPosition, cameraPosition + cameraDirection, upDirection);
             var mousePos = new Vector2(_inputs.Mouse.X, _inputs.Mouse.Y);
-            var groundPoint = GetMouseGroundPoint(mousePos, view, projection, window.Width, window.Height);
+            var groundPoint = GetMouseGroundPoint(mousePos, view, projection, renderSurface.Width, renderSurface.Height);
             var position = new Vector3(float.Floor(groundPoint.X * 2) / 2 + 0.25f, 0, float.Floor(groundPoint.Z * 2) / 2 + 0.25f);
 
             ref var cursorGroundPosition = ref World.Get<LocalTransform>(World.GetSingletonEntity<GridMarkerTag>());
-            cursorGroundPosition.Position = position with { Y = 0.01f };
+            cursorGroundPosition.Position = position with { Y = 0.01f };*/
         }
 
-        private static Vector3 GetMouseGroundPoint(Vector2 mousePos, Matrix4x4 view, Matrix4x4 projection, uint screenWidth, uint screenHeight)
+        /*private static Vector3 GetMouseGroundPoint(Vector2 mousePos, Matrix4x4 view, Matrix4x4 projection, uint screenWidth, uint screenHeight)
         {
             Matrix4x4.Invert(view * projection, out var invVP);
     
@@ -57,6 +57,6 @@ namespace Hanamura
             var dir = Vector3.Normalize(new Vector3(far.X - near.X, far.Y - near.Y, far.Z - near.Z));
             var point = new Vector3(near.X, near.Y, near.Z) + dir * (-near.Y / dir.Y);
             return point;
-        }
+        }*/
     }
 }

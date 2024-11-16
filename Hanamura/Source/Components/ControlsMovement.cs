@@ -1,6 +1,6 @@
 ﻿namespace Hanamura
 {
-    public interface IEntityModule
+    public struct ControlsMovement
     {
     }
 }

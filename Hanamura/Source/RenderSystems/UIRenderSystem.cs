@@ -14,8 +14,7 @@ namespace Hanamura
         
         public void Render(CommandBuffer cmdBuf, Texture swapchainTexture, AssetStore assetStore)
         {
-            var mainWindow = GetSingletonEntity<MainWindowTag>();
-            var window = Get<Rect>(mainWindow);
+            var renderSurface = GetSingleton<RenderSurface>();
             var fontMaterial = assetStore.FontMaterial;
             var textBatch = assetStore.TextBatch;
             
@@ -30,11 +29,11 @@ namespace Hanamura
             
             const int fontSize = 48;
             renderPass.BindGraphicsPipeline(fontMaterial.GraphicsPipeline);
-            var textModel = Matrix4x4.CreateTranslation(window.Width / 2f, fontSize, 0);
+            var textModel = Matrix4x4.CreateTranslation(renderSurface.Width / 2f, fontSize, 0);
             var textProj = Matrix4x4.CreateOrthographicOffCenter(
                 0,
-                window.Width,
-                window.Height,
+                renderSurface.Width,
+                renderSurface.Height,
                 0,
                 0,
                 -1

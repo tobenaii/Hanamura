@@ -30,7 +30,7 @@ namespace Hanamura
             {
                 var transformState = World.Get<TransformState>(entity);
                 ref var transform = ref World.Get<Transform>(entity);
-                if (!World.Has<FixedRenderTag>(entity))
+                if (!World.Has<HasFixedTransform>(entity))
                 {
                     var prevScale = transformState.Previous.Scale;
                     var prevRotation = transformState.Previous.Rotation;
@@ -56,9 +56,9 @@ namespace Hanamura
                 }
             }
 
-            var mainCameraEntity = World.GetSingletonEntity<MainCameraTag>();
+            var mainCameraEntity = World.GetSingletonEntity<MainRenderCamera>();
             
-            var cameraConfig = World.Get<CameraConfig>(mainCameraEntity);
+            var cameraConfig = World.Get<CameraSettings>(mainCameraEntity);
             var projection = Matrix4x4.CreatePerspectiveFieldOfView(
                 cameraConfig.Fov,
                 (float)window.Width / window.Height,

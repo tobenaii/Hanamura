@@ -1,13 +1,13 @@
 ﻿namespace Hanamura
 {
-    public class GameObject
+    public class Model
     {
         public record struct Part(string Name, int Index, LocalTransform Transform, int[]? Children);
         public Part[] Parts { get; }
         
         private readonly Dictionary<int, int> _parentLookup;
     
-        public GameObject(Part[] meshNames)
+        public Model(Part[] meshNames)
         {
             Parts = meshNames;
             _parentLookup = new Dictionary<int, int>();

@@ -1,0 +1,4 @@
+﻿namespace Hanamura
+{
+    public readonly record struct CameraSettings(float Fov, float Near, float Far);
+}

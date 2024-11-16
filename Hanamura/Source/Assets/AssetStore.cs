@@ -17,10 +17,12 @@ namespace Hanamura
         private readonly Dictionary<AssetRef, Font> _fonts = new();
         private readonly Dictionary<AssetRef, Shader> _shaders = new();
         private readonly Dictionary<AssetRef, GraphicsPipeline> _materials = new();
-        private readonly Dictionary<AssetRef, GameObject> _gameObjects = new();
         private readonly Dictionary<SamplerType, Sampler> _samplers = new();
         private readonly FileSystemWatcher _watcher;
         private readonly List<string> _requiresReload;
+        
+        //TODO: Make this not static at some point
+        public static readonly Dictionary<AssetRef, Model> GameObjects = new();
         
         public FontMaterial FontMaterial { get; private set; }
         public TextBatch TextBatch { get; private set; }
@@ -169,9 +171,9 @@ namespace Hanamura
             return _materials[typeof(T).Name];
         }
         
-        public GameObject GetGameObject(AssetRef gameObjectId)
+        public static Model GetModel(AssetRef gameObjectId)
         {
-            return _gameObjects[gameObjectId];
+            return GameObjects[gameObjectId];
         }
         
         public Sampler GetSampler(SamplerType type)
@@ -225,8 +227,9 @@ namespace Hanamura
 
         private void LoadMesh(string path, GraphicsDevice graphicsDevice)
         {
+            var modelName = Path.GetFileNameWithoutExtension(path);
             var meshes = GLTFLoader.Load(path);
-            var meshNames = new GameObject.Part[meshes.Length];
+            var meshNames = new Model.Part[meshes.Length];
             var i = 0;
             foreach (var meshData in meshes)
             {
@@ -237,11 +240,12 @@ namespace Hanamura
                 indexBuffer.Name = Path.GetFileNameWithoutExtension(path) + " Indices";
                 resourceUploader.Upload();
                 resourceUploader.Dispose();
-                _meshes.Add(Path.GetFileNameWithoutExtension(path) + "." + meshData.Name, new Mesh(vertexBuffer, indexBuffer));
-                meshNames[i] = new GameObject.Part(meshData.Name, i, meshData.Transform, meshData.Children);
+                var partName = modelName + "." + meshData.Name;
+                _meshes.Add(partName, new Mesh(vertexBuffer, indexBuffer));
+                meshNames[i] = new Model.Part(partName, i, meshData.Transform, meshData.Children);
                 i++;
             }
-            _gameObjects.Add(Path.GetFileNameWithoutExtension(path), new GameObject(meshNames));
+            GameObjects.Add(Path.GetFileNameWithoutExtension(path), new Model(meshNames));
         }
         
         private void LoadShader(string path, GraphicsDevice graphicsDevice)

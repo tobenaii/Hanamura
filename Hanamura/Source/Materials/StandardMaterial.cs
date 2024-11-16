@@ -1,6 +1,6 @@
 ﻿namespace Hanamura
 {
-    public struct StandardMaterial : IMaterial
+    public record struct StandardMaterial(AssetRef Texture) : IMaterial
     {
         public static AssetRef VertexShader => "StandardShader.vert";
         public static AssetRef FragmentShader => "StandardShader.frag";
