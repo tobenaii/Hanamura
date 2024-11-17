@@ -36,6 +36,7 @@ namespace Hanamura
             var lightTransform = Get<Transform>(GetSingletonEntity<DirectionalLight>());
             
             var renderPass = cmdBuf.BeginRenderPass(
+                new DepthStencilTargetInfo(depthTexture, 1f, true),
                 new ColorTargetInfo()
                 {
                     Texture = renderTarget.Handle,
@@ -45,8 +46,7 @@ namespace Hanamura
                     CycleResolveTexture = true,
                     ResolveTexture = swapchainTexture.Handle,
                     StoreOp = StoreOp.Resolve
-                },
-                new DepthStencilTargetInfo(depthTexture, 1f, true)
+                }
             );
             var fragmentUniforms = new LightingFragmentUniform(lightTransform.Forward);
             cmdBuf.PushFragmentUniformData(fragmentUniforms);
@@ -60,9 +60,9 @@ namespace Hanamura
                 var vertexUniforms = new TransformVertexUniform(model * viewProjection, model);
                 var mesh = assetStore.GetMesh(meshConfig.Mesh);
                 var texture = assetStore.GetTexture(material.Texture);
-                renderPass.BindVertexBuffer(mesh.VertexBuffer);
+                renderPass.BindVertexBuffers(mesh.VertexBuffer);
                 renderPass.BindIndexBuffer(mesh.IndexBuffer, IndexElementSize.ThirtyTwo);
-                renderPass.BindFragmentSampler(new TextureSamplerBinding(texture, assetStore.GetSampler(SamplerType.LinearWrap)));
+                renderPass.BindFragmentSamplers(new TextureSamplerBinding(texture, assetStore.GetSampler(SamplerType.LinearWrap)));
                 cmdBuf.PushVertexUniformData(vertexUniforms);
                 renderPass.DrawIndexedPrimitives(mesh.IndexCount, 1, 0, 0, 0);
             }
@@ -74,7 +74,7 @@ namespace Hanamura
                 var markerModel = markerTransform.Value;
                 var markerVertexUniforms = new TransformVertexUniform(markerModel * viewProjection, markerModel);
                 var markerMesh = assetStore.GetMesh("Quad.Plane");
-                renderPass.BindVertexBuffer(markerMesh.VertexBuffer);
+                renderPass.BindVertexBuffers(markerMesh.VertexBuffer);
                 renderPass.BindIndexBuffer(markerMesh.IndexBuffer, IndexElementSize.ThirtyTwo);
                 cmdBuf.PushVertexUniformData(markerVertexUniforms);
                 renderPass.DrawIndexedPrimitives(markerMesh.IndexCount, 1, 0, 0, 0);
@@ -91,7 +91,7 @@ namespace Hanamura
                 var blobShadowVertexUniforms =
                     new TransformVertexUniform(blobShadowModel * viewProjection, blobShadowModel);
                 var blobShadowMesh = assetStore.GetMesh("BlobShadow.Plane");
-                renderPass.BindVertexBuffer(blobShadowMesh.VertexBuffer);
+                renderPass.BindVertexBuffers(blobShadowMesh.VertexBuffer);
                 renderPass.BindIndexBuffer(blobShadowMesh.IndexBuffer, IndexElementSize.ThirtyTwo);
                 cmdBuf.PushVertexUniformData(blobShadowVertexUniforms);
                 renderPass.DrawIndexedPrimitives(blobShadowMesh.IndexCount, 1, 0, 0, 0);
