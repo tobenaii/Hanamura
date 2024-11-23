@@ -50,7 +50,7 @@ namespace Hanamura
             );
             var fragmentUniforms = new LightingFragmentUniform(lightTransform.Forward);
             cmdBuf.PushFragmentUniformData(fragmentUniforms);
-            renderPass.BindGraphicsPipeline(assetStore.GetMaterial<StandardMaterial>());
+            renderPass.BindGraphicsPipeline(assetStore.GetGraphicsPipeline<StandardMaterial>());
             foreach (var entity in _meshFilter.Entities)
             {
                 var material = Get<StandardMaterial>(entity);
@@ -67,7 +67,7 @@ namespace Hanamura
                 renderPass.DrawIndexedPrimitives(mesh.IndexCount, 1, 0, 0, 0);
             }
 
-            renderPass.BindGraphicsPipeline(assetStore.GetMaterial<GridMarkerMaterial>());
+            renderPass.BindGraphicsPipeline(assetStore.GetGraphicsPipeline<GridMarkerMaterial>());
             foreach (var entity in _markerFilter.Entities)
             {
                 var markerTransform = World.Get<Transform>(entity);
@@ -80,7 +80,7 @@ namespace Hanamura
                 renderPass.DrawIndexedPrimitives(markerMesh.IndexCount, 1, 0, 0, 0);
             }
             
-            renderPass.BindGraphicsPipeline(assetStore.GetMaterial<BlobShadowMaterial>());
+            renderPass.BindGraphicsPipeline(assetStore.GetGraphicsPipeline<BlobShadowMaterial>());
             foreach (var entity in _blobShadowFilter.Entities)
             {
                 var blobShadowTransform = World.Get<Transform>(entity);

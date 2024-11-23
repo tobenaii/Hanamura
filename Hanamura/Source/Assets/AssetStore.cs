@@ -1,14 +1,24 @@
 ﻿using System.Runtime.InteropServices;
+using glTFLoader.Schema;
 using MoonWorks;
 using MoonWorks.Graphics;
 using MoonWorks.Graphics.Font;
 using SDL3;
+using Sampler = MoonWorks.Graphics.Sampler;
 using Texture = MoonWorks.Graphics.Texture;
 
 namespace Hanamura
 {
     public class AssetStore
     {
+        private class Material
+        {
+            public AssetRef VertexShader;
+            public AssetRef FragmentShader;
+            public GraphicsPipelineCreateInfo PipelineCreateInfo;
+            public GraphicsPipeline Pipeline;
+        }
+        
         private const SampleCount DEFAULT_SAMPLE_COUNT = SampleCount.Eight;
 
         private readonly GraphicsDevice _graphicsDevice;
@@ -16,7 +26,7 @@ namespace Hanamura
         private readonly Dictionary<AssetRef, Mesh> _meshes = new();
         private readonly Dictionary<AssetRef, Font> _fonts = new();
         private readonly Dictionary<AssetRef, Shader> _shaders = new();
-        private readonly Dictionary<AssetRef, GraphicsPipeline> _materials = new();
+        private readonly Dictionary<AssetRef, Material> _materials = new();
         private readonly Dictionary<SamplerType, Sampler> _samplers = new();
         private readonly FileSystemWatcher _watcher;
         private readonly List<string> _requiresReload;
@@ -79,6 +89,7 @@ namespace Hanamura
             var shaderPaths = Directory.GetFiles(contentPath + "Shaders", "*.hlsl", SearchOption.AllDirectories);
             foreach (var path in shaderPaths)
             {
+                if (path.Contains("includes")) continue;
                 LoadShader(path, graphicsDevice);
             }
             
@@ -99,7 +110,7 @@ namespace Hanamura
         {
             if (_materials.TryGetValue(typeof(T).Name, out var material))
             {
-                material.Dispose();
+                material.Pipeline.Dispose();
             }
             
             var vertexShader = _shaders[T.VertexShader];
@@ -111,7 +122,29 @@ namespace Hanamura
             );
             T.ConfigurePipeline(ref pipelineCreateInfo);
             var newMaterial = GraphicsPipeline.Create(graphicsDevice, pipelineCreateInfo);
-            _materials.Add(typeof(T).Name, newMaterial);
+            _materials.Add(typeof(T).Name, new Material()
+            {
+                VertexShader = T.VertexShader,
+                FragmentShader = T.FragmentShader,
+                PipelineCreateInfo = pipelineCreateInfo,
+                Pipeline = newMaterial
+            });
+        }
+
+        public void RebuildMaterialsWithShader(GraphicsDevice graphicsDevice, AssetRef shaderId)
+        {
+            foreach (var material in _materials.Values)
+            {
+                if (material.VertexShader == shaderId || material.FragmentShader == shaderId)
+                {
+                    material.Pipeline.Dispose();
+                    var vertexShader = _shaders[material.VertexShader];
+                    var fragmentShader = _shaders[material.FragmentShader];
+                    var pipelineCreateInfo = material.PipelineCreateInfo with {VertexShader = vertexShader, FragmentShader = fragmentShader};
+                    var newMaterial = GraphicsPipeline.Create(graphicsDevice, pipelineCreateInfo);
+                    material.Pipeline = newMaterial;
+                }
+            }
         }
 
         public void CheckForReload()
@@ -140,6 +173,7 @@ namespace Hanamura
                     _shaders[id].Dispose();
                     _shaders.Remove(id);
                     LoadShader(path, _graphicsDevice);
+                    RebuildMaterialsWithShader(_graphicsDevice, id);
                 }
                 Console.WriteLine($"Reloaded {Path.GetFileName(path)}");
             }
@@ -166,9 +200,9 @@ namespace Hanamura
             return _fonts[fontId];
         }
         
-        public GraphicsPipeline GetMaterial<T>() where T : IMaterial
+        public GraphicsPipeline GetGraphicsPipeline<T>() where T : IMaterial
         {
-            return _materials[typeof(T).Name];
+            return _materials[typeof(T).Name].Pipeline;
         }
         
         public static Model GetModel(AssetRef gameObjectId)

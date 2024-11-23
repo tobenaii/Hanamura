@@ -24,7 +24,8 @@ namespace Hanamura
                 filePath,
                 "main",
                 ShaderCross.ShaderFormat.HLSL,
-                stage
+                stage,
+                "Content/Shaders/"
             );
             return shader;
         }

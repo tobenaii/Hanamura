@@ -4,3 +4,6 @@
 [submodule "MoonTools.ECS"]
 	path = MoonTools.ECS
 	url = https://github.com/MoonsideGames/MoonTools.ECS.git
+[submodule "Hanamura/Content/Shaders/includes/lygia"]
+	path = Hanamura/Content/Shaders/includes/lygia
+	url = https://github.com/patriciogonzalezvivo/lygia.git
