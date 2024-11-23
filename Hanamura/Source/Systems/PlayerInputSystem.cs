@@ -16,17 +16,11 @@ namespace Hanamura
         public override void Update(TimeSpan delta)
         {           
             var playerInput = World.GetSingletonEntity<PlayerInput>();
-            var movementTarget = World.OutRelationSingleton<ControlsMovement>(playerInput);
-            var orbitTarget = World.OutRelationSingleton<ControlsOrbit>(playerInput);
+            var movementTarget = World.OutRelationSingleton<ControlsCharacter>(playerInput);
             
-            ref var movement = ref World.Get<CharacterMovement>(movementTarget);
-            var orbit = World.GetRelationData<OrbitsTarget>(orbitTarget, movementTarget);
-            
-            ref var relativeTransform = ref World.Get<LocalTransform>(orbitTarget);
-            var forward = relativeTransform.Forward;
-            forward.Y = 0;
-            forward = Vector3.Normalize(forward);
-            var right = -Vector3.Cross(Vector3.UnitY, forward);
+            ref var characterControls = ref World.Get<CharacterControls>(movementTarget);
+            var forward = new Vector3(0, 0, -1);
+            var right = new Vector3(1, 0, 0);
 
             var direction = Vector3.Zero;
             if (_inputs.Keyboard.IsDown(KeyCode.W))
@@ -60,21 +54,28 @@ namespace Hanamura
                 direction += forward * -_inputs.GetGamepad(0).AxisValue(AxisCode.LeftY);
             }
             
-            movement.Movement = new Vector2(direction.X, direction.Z);
+            characterControls.Move = new Vector2(direction.X, direction.Z);
             
-            if (direction != Vector3.Zero)
+            var mouseX = _inputs.Mouse.DeltaX;
+            var mouseY = _inputs.Mouse.DeltaY;
+            var gamepadRightX = _inputs.GetGamepad(0).AxisValue(AxisCode.RightX);
+            var gamepadRightY = _inputs.GetGamepad(0).AxisValue(AxisCode.RightY);
+            if (mouseX == 0 && mouseY == 0)
             {
-                movement.Facing = new Vector2(direction.X, direction.Z);
+                //gamepad controls with deadzone
+                if (Vector2.DistanceSquared(new Vector2(gamepadRightX, gamepadRightY), Vector2.Zero) > 0.025f)
+                {
+                    characterControls.LookYawPitch = new Vector2(gamepadRightX, gamepadRightY) * 0.025f;
+                }
+                else
+                {
+                    characterControls.LookYawPitch = Vector2.Zero;
+                }
             }
-            
-            orbit.Yaw -= _inputs.Mouse.DeltaX * 0.001f;
-            
-            if (Math.Abs(_inputs.GetGamepad(0).AxisValue(AxisCode.RightX)) > 0.1f)
+            else
             {
-                orbit.Yaw -= _inputs.GetGamepad(0).AxisValue(AxisCode.RightX);
+                characterControls.LookYawPitch = new Vector2(mouseX, mouseY) * 0.001f;
             }
-            
-            World.Relate(orbitTarget, movementTarget, orbit);
         }
     }
 }

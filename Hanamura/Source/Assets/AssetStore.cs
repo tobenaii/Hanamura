@@ -22,7 +22,7 @@ namespace Hanamura
         private readonly List<string> _requiresReload;
         
         //TODO: Make this not static at some point
-        public static readonly Dictionary<AssetRef, Model> GameObjects = new();
+        private static readonly Dictionary<AssetRef, Model> GameObjects = new();
         
         public FontMaterial FontMaterial { get; private set; }
         public TextBatch TextBatch { get; private set; }

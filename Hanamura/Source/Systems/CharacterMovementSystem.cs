@@ -10,7 +10,7 @@ namespace Hanamura
         public CharacterMovementSystem(World world) : base(world)
         {
             _filter = FilterBuilder
-                .Include<CharacterMovement>()
+                .Include<CharacterControls>()
                 .Include<LocalTransform>()
                 .Build();
         }
@@ -19,16 +19,21 @@ namespace Hanamura
         {
             foreach (var entity in _filter.Entities)
             {
-                var charMovement = World.Get<CharacterMovement>(entity);
+                var controls = World.Get<CharacterControls>(entity);
                 ref var transform = ref World.Get<LocalTransform>(entity);
-
-                var movement = charMovement.Movement == Vector2.Zero ? Vector2.Zero : Vector2.Normalize(charMovement.Movement);
-                var facing = charMovement.Facing == Vector2.Zero ? Vector2.Zero : Vector2.Normalize(charMovement.Facing);
+                ref var characterViewRotation = ref World.Get<CharacterViewRotation>(entity);
+                //clamp pitch
+                var maxPitch = float.DegreesToRadians(85f);
+                characterViewRotation = characterViewRotation with
+                {
+                    Pitch = Math.Clamp(characterViewRotation.Pitch, -maxPitch, maxPitch)
+                };
                 
-                transform.Position += new Vector3(movement.X, 0, movement.Y) * 2 * (float) delta.TotalSeconds;
-                var angle = (float)Math.Atan2(-charMovement.Facing.X, -charMovement.Facing.Y);
-                var rotation = Quaternion.CreateFromYawPitchRoll(angle, 0, 0);
-                transform.Rotation = Quaternion.Slerp(transform.Rotation, rotation, 0.25f);
+                var inputDirection = controls.Move == Vector2.Zero ? Vector2.Zero : Vector2.Normalize(controls.Move);
+                var translation = Vector2.Transform(inputDirection, Matrix3x2.CreateRotation(characterViewRotation.Yaw));
+                transform.Position += new Vector3(translation.X, 0, translation.Y) * 2 * (float) delta.TotalSeconds;
+                transform.Rotation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, -characterViewRotation.Yaw);
+                characterViewRotation = new CharacterViewRotation(characterViewRotation.Yaw + controls.LookYawPitch.X, characterViewRotation.Pitch + controls.LookYawPitch.Y);
             }
         }
     }

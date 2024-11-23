@@ -32,10 +32,10 @@ namespace Hanamura
         }
 
         private readonly AssetStore _assetStore;
-        private readonly RenderSystem _renderSystem;
-        private readonly List<MoonTools.ECS.System> _systems = new();
-        private readonly World _world;
-        private readonly ModelManipulator _modelManipulator;
+        private RenderSystem _renderSystem;
+        private List<MoonTools.ECS.System> _systems = new();
+        private World _world = new();
+        private ModelManipulator _modelManipulator;
 
         private Program(WindowCreateInfo windowCreateInfo, FrameLimiterSettings frameLimiterSettings,
             ShaderFormat availableShaderFormats, string contentPath) :
@@ -50,20 +50,29 @@ namespace Hanamura
             MainWindow.SetPosition(1720, 236);
 
             ShaderCross.Initialize();
-            _world = new World();
-            _modelManipulator = new ModelManipulator(_world);
             _assetStore = new AssetStore(GraphicsDevice, MainWindow, contentPath);
             
             _assetStore.RegisterMaterial<StandardMaterial>(MainWindow.SwapchainFormat, GraphicsDevice);
             _assetStore.RegisterMaterial<GridMarkerMaterial>(MainWindow.SwapchainFormat, GraphicsDevice);
             _assetStore.RegisterMaterial<BlobShadowMaterial>(MainWindow.SwapchainFormat, GraphicsDevice);
             
+            SetupWorld();
+        }
+
+        private void SetupWorld()
+        {
+            _systems.Clear();
+            _world.Dispose();
+            
+            _world = new World();
+            _modelManipulator = new ModelManipulator(_world);
+
             _renderSystem = new RenderSystem(_world);
             
             _systems.Add(new UpdateTransformStateSystem(_world));
             _systems.Add(new PlayerInputSystem(_world, Inputs));
+            _systems.Add(new FirstPersonCameraUpdateSystem(_world));
             _systems.Add(new CharacterMovementSystem(_world));
-            _systems.Add(new OrbitFollowSystem(_world));
             _systems.Add(new GridMarkerPositionSystem(_world, Inputs));
             _systems.Add(new TransformSystem(_world));
 
@@ -76,9 +85,10 @@ namespace Hanamura
             SpawnTree(new Vector3(2, 0, 0));
             SpawnTree(new Vector3(-2, 0, 0));
             SpawnTree(new Vector3(0, 0, -2));
+            
             var playerCharacter = SpawnPlayerCharacter();
-            var camera = SpawnMainCamera(playerCharacter);
-            SpawnPlayerController(playerCharacter, camera);
+            SpawnPlayerCamera(playerCharacter);
+            SpawnPlayerController(playerCharacter);
         }
         
         private void SpawnDirectionalLight()
@@ -99,6 +109,7 @@ namespace Hanamura
         {
             var entity = _world.CreateEntity();
             _world.Set(entity, LocalTransform.FromPosition(position));
+            _world.Set(entity, new HasBlobShadow(3));
             _modelManipulator.AddModel(entity, "Tree", new StandardMaterial("PixPal_BaseColor"));
         }
 
@@ -107,33 +118,38 @@ namespace Hanamura
             var entity = _world.CreateEntity();
             _world.Set(entity, new HasBlobShadow(0.75f));
             _world.Set(entity, new LocalTransform());
-            _world.Set(entity, new CharacterMovement());
-            _modelManipulator.AddModel(entity, "PlayerCharacter", new StandardMaterial("PixPal_BaseColor"));
-            
+            _world.Set(entity, new CharacterControls());
+            _world.Set(entity, new CharacterViewRotation());
             return entity;
         }
 
-        private Entity SpawnMainCamera(Entity playerCharacter)
+        private void SpawnPlayerCamera(Entity playerCharacter)
         {
             var entity = _world.CreateEntity();
             _world.Set(entity, new MainRenderCamera());
             _world.Set(entity, new CameraViewProjection());
-            _world.Set(entity, new LocalTransform());
-            _world.Set(entity, new CameraSettings(float.DegreesToRadians(50), 0.01f, 100f));
-            _world.Relate(entity, playerCharacter, new OrbitsTarget(Vector3.UnitY * 1f, 0, 0.75f, 7.5f));
-            return entity;
+            _world.Set(entity, LocalTransform.FromPosition(new Vector3(0, 1, 0)));
+            _world.Set(entity, new CameraSettings(float.DegreesToRadians(50), 0.01f, 90f));
+            _world.Set(entity, new Parent(playerCharacter));
+            _world.Set(entity, new ChildDepth1());
+            _world.Set(entity, new FirstPersonCamera());
+            _world.Relate(entity, playerCharacter, new AttachedToCharacter());
         }
         
-        private void SpawnPlayerController(Entity playerCharacter, Entity camera)
+        private void SpawnPlayerController(Entity playerCharacter)
         {
             var entity = _world.CreateEntity();
             _world.Set(entity, new PlayerInput());
-            _world.Relate(entity, playerCharacter, new ControlsMovement());
-            _world.Relate(entity, camera, new ControlsOrbit());
+            _world.Relate(entity, playerCharacter, new ControlsCharacter());
         }
         
         protected override void Update(TimeSpan delta)
         {
+            if (Inputs.Keyboard.IsHeld(KeyCode.LeftControl) && Inputs.Keyboard.IsHeld(KeyCode.R))
+            {
+                SetupWorld();
+            }
+            
             if (Inputs.Keyboard.IsPressed(KeyCode.Escape))
             {
                 MainWindow.SetRelativeMouseMode(false);
