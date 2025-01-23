@@ -5,11 +5,12 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <PublishAot>true</PublishAot>
+        <PublishTrimmed>true</PublishTrimmed>
         <InvariantGlobalization>true</InvariantGlobalization>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>13</LangVersion>
     </PropertyGroup>
-
+    
     <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
         <PublishTrimmed>false</PublishTrimmed>
     </PropertyGroup>
@@ -30,18 +31,15 @@
     </ItemGroup>
     
     <ItemGroup>
-      <ProjectReference Include="..\MoonTools.ECS\MoonTools.ECS.csproj" />
-      <ProjectReference Include="..\MoonWorks\MoonWorks.csproj" />
+      <ProjectReference Include="..\lib\MoonTools.ECS\MoonTools.ECS.csproj" />
+      <ProjectReference Include="..\lib\MoonWorks\MoonWorks.csproj" />
+      <ProjectReference Include="..\lib\Waddle\Waddle.csproj" />
     </ItemGroup>
     
     <ItemGroup>
       <PackageReference Include="glTF2Loader" Version="1.1.4-alpha" />
       <PackageReference Include="NETStandard.Library" Version="2.0.3" />
       <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    </ItemGroup>
-    
-    <ItemGroup>
-      <Folder Include="Content\Shaders\includes\" />
     </ItemGroup>
     
     <Import Project=".\CopyMoonlibs.targets" />

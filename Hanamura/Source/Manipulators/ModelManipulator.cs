@@ -1,5 +1,6 @@
 ﻿using MoonTools.ECS;
 using MoonTools.ECS.Collections;
+using Waddle;
 
 namespace Hanamura
 {
@@ -9,9 +10,12 @@ namespace Hanamura
         {
         }
 
-        public void AddModel<T>(Entity entity, AssetRef modelRef, T material) where T : unmanaged, IMaterial
+        public void AddModel<T>(Entity entity, AssetRef modelRef, T material) where T : unmanaged
         {
-            var model = AssetStore.GetModel(modelRef);
+            World.Set(entity, new HasMesh(modelRef));
+            World.Set(entity, material);
+            World.Set(entity, new Transform());
+            /*var model = AssetStore.GetModel(modelRef);
 
             var entities = new NativeArray<Entity>(model.Parts.Length);
             for (var i = 0; i < model.Parts.Length; i++)
@@ -41,12 +45,7 @@ namespace Hanamura
                         World.Set(meshEntity, new Parent(entities[model.GetParentOfPart(i).Index]));
                         break;
                 }
-            }
-        }
-
-        public void SetMaterial<T>(AssetRef mesh, T material) where T : IMaterial
-        {
-            throw new NotImplementedException();
+            }*/
         }
     }
 }

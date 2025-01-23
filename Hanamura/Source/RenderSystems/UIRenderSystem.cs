@@ -3,20 +3,24 @@ using MoonTools.ECS;
 using MoonWorks;
 using MoonWorks.Graphics;
 using MoonWorks.Graphics.Font;
+using Waddle;
 
 namespace Hanamura
 {
     public class UIRenderSystem : Renderer
     {
-        public UIRenderSystem(World world) : base(world)
+        private readonly TextBatch _textBatch;
+        private readonly FontMaterial _fontMaterial;
+        
+        public UIRenderSystem(World world, Window window, GraphicsDevice graphicsDevice) : base(world)
         {
+            _textBatch = new TextBatch(graphicsDevice);
+            _fontMaterial = new FontMaterial(window, graphicsDevice);
         }
         
-        public void Render(CommandBuffer cmdBuf, Texture swapchainTexture, AssetStore assetStore)
+        public void Render(CommandBuffer cmdBuf, Texture swapchainTexture)
         {
             var renderSurface = GetSingleton<RenderSurface>();
-            var fontMaterial = assetStore.FontMaterial;
-            var textBatch = assetStore.TextBatch;
             
             var renderPass = cmdBuf.BeginRenderPass(
                 new ColorTargetInfo()
@@ -28,7 +32,7 @@ namespace Hanamura
             );
             
             const int fontSize = 48;
-            renderPass.BindGraphicsPipeline(fontMaterial.GraphicsPipeline);
+            renderPass.BindGraphicsPipeline(_fontMaterial.GraphicsPipeline);
             var textModel = Matrix4x4.CreateTranslation(renderSurface.Width / 2f, fontSize, 0);
             var textProj = Matrix4x4.CreateOrthographicOffCenter(
                 0,
@@ -38,16 +42,16 @@ namespace Hanamura
                 0,
                 -1
             );
-            textBatch.Start(assetStore.GetFont("SofiaSans"));
-            textBatch.Add(
+            _textBatch.Start(AssetStore.GetFont("SofiaSans"));
+            _textBatch.Add(
                 "Hanamura",
                 fontSize,
                 Color.White,
                 HorizontalAlignment.Center,
                 VerticalAlignment.Middle
             );
-            textBatch.UploadBufferData(cmdBuf);
-            textBatch.Render(cmdBuf, renderPass, textModel * textProj);
+            _textBatch.UploadBufferData(cmdBuf);
+            _textBatch.Render(renderPass, textModel * textProj);
             cmdBuf.EndRenderPass(renderPass);
         }
     }

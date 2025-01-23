@@ -1,9 +1,12 @@
-[submodule "MoonWorks"]
-	path = MoonWorks
+[submodule "Waddle"]
+	path = Waddle
+	url = https://github.com/tobenaii/Waddle.git
+[submodule "lib/Waddle"]
+	path = lib/Waddle
+	url = https://github.com/tobenaii/Waddle.git
+[submodule "lib/MoonWorks"]
+	path = lib/MoonWorks
 	url = https://github.com/MoonsideGames/MoonWorks.git
-[submodule "MoonTools.ECS"]
-	path = MoonTools.ECS
+[submodule "lib/MoonTools.ECS"]
+	path = lib/MoonTools.ECS
 	url = https://github.com/MoonsideGames/MoonTools.ECS.git
-[submodule "Hanamura/Content/Shaders/includes/lygia"]
-	path = Hanamura/Content/Shaders/includes/lygia
-	url = https://github.com/patriciogonzalezvivo/lygia.git

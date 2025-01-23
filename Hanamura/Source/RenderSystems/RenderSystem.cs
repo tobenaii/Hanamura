@@ -12,7 +12,7 @@ namespace Hanamura
         private readonly UIRenderSystem _uiRenderSystem;
         private readonly Filter _transformFilter;
 
-        public RenderSystem(World world) :
+        public RenderSystem(World world, Window window, GraphicsDevice graphicsDevice) :
             base(world)
         {
             _transformFilter = FilterBuilder
@@ -20,13 +20,13 @@ namespace Hanamura
                 .Include<TransformState>()
                 .Build();
             
-            _worldRenderSystem = new WorldRenderSystem(world);
-            _uiRenderSystem = new UIRenderSystem(world);
+            _worldRenderSystem = new WorldRenderSystem(world, window, graphicsDevice);
+            _uiRenderSystem = new UIRenderSystem(world, window, graphicsDevice);
         }
 
-        public void Draw(double alpha, Window window, GraphicsDevice graphicsDevice, AssetStore assetStore)
+        public void Draw(double alpha, Window window, GraphicsDevice graphicsDevice)
         {
-            foreach (var entity in _transformFilter.Entities)
+            /*foreach (var entity in _transformFilter.Entities)
             {
                 var transformState = World.Get<TransformState>(entity);
                 ref var transform = ref World.Get<Transform>(entity);
@@ -54,7 +54,7 @@ namespace Hanamura
                 {
                     transform = transformState.Current;
                 }
-            }
+            }*/
 
             var mainCameraEntity = World.GetSingletonEntity<MainRenderCamera>();
             
@@ -79,9 +79,8 @@ namespace Hanamura
             var swapchainTexture = cmdBuf.AcquireSwapchainTexture(window);
             if (swapchainTexture != null)
             {
-                _worldRenderSystem.Render(cmdBuf, swapchainTexture, assetStore.RenderTarget, assetStore.DepthTexture,
-                    assetStore);
-                _uiRenderSystem.Render(cmdBuf, swapchainTexture, assetStore);
+                _worldRenderSystem.Render(cmdBuf, swapchainTexture);
+                _uiRenderSystem.Render(cmdBuf, swapchainTexture);
             }
 
             graphicsDevice.Submit(cmdBuf);

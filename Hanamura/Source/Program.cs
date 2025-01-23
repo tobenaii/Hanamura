@@ -4,6 +4,7 @@ using MoonWorks;
 using MoonWorks.Graphics;
 using MoonWorks.Input;
 using SDL3;
+using Waddle;
 
 namespace Hanamura
 {
@@ -18,9 +19,7 @@ namespace Hanamura
                 ScreenMode.Windowed
             );
 
-            var frameLimiterSettings = new FrameLimiterSettings(
-                FrameLimiterMode.Uncapped,
-                0);
+            var frameLimiterSettings = FramePacingSettings.CreateLatencyOptimized(120);
             
             var game = new Program(
                 windowCreateInfo,
@@ -31,15 +30,14 @@ namespace Hanamura
             game.Run();
         }
 
-        private readonly AssetStore _assetStore;
-        private RenderSystem _renderSystem;
-        private List<MoonTools.ECS.System> _systems = new();
-        private World _world = new();
+        private readonly List<MoonTools.ECS.System> _systems = new();
+        private World _world;
         private ModelManipulator _modelManipulator;
+        private RenderSystem _renderSystem;
 
-        private Program(WindowCreateInfo windowCreateInfo, FrameLimiterSettings frameLimiterSettings,
+        private Program(WindowCreateInfo windowCreateInfo, FramePacingSettings frameLimiterSettings,
             ShaderFormat availableShaderFormats, string contentPath) :
-            base(windowCreateInfo, frameLimiterSettings, availableShaderFormats, 60)
+            base(windowCreateInfo, frameLimiterSettings, availableShaderFormats)
         {
             /*SDL.SDL_SetGPUSwapchainParameters(GraphicsDevice.Handle,
                 MainWindow.Handle,
@@ -50,16 +48,16 @@ namespace Hanamura
             MainWindow.SetPosition(1720, 236);
 
             ShaderCross.Initialize();
-            _assetStore = new AssetStore(GraphicsDevice, MainWindow, contentPath);
+            AssetStore.Init(GraphicsDevice, contentPath);
+            _world = new World();
+            _modelManipulator = new ModelManipulator(_world);
+
+            _renderSystem = new RenderSystem(_world, MainWindow, GraphicsDevice);
             
-            _assetStore.RegisterMaterial<StandardMaterial>(MainWindow.SwapchainFormat, GraphicsDevice);
-            _assetStore.RegisterMaterial<GridMarkerMaterial>(MainWindow.SwapchainFormat, GraphicsDevice);
-            _assetStore.RegisterMaterial<BlobShadowMaterial>(MainWindow.SwapchainFormat, GraphicsDevice);
-            
-            SetupWorld();
+            SetupNewWorld();
         }
 
-        private void SetupWorld()
+        private void SetupNewWorld()
         {
             _systems.Clear();
             _world.Dispose();
@@ -67,7 +65,7 @@ namespace Hanamura
             _world = new World();
             _modelManipulator = new ModelManipulator(_world);
 
-            _renderSystem = new RenderSystem(_world);
+            _renderSystem = new RenderSystem(_world, MainWindow, GraphicsDevice);
             
             _systems.Add(new UpdateTransformStateSystem(_world));
             _systems.Add(new PlayerInputSystem(_world, Inputs));
@@ -147,7 +145,7 @@ namespace Hanamura
         {
             if (Inputs.Keyboard.IsHeld(KeyCode.LeftControl) && Inputs.Keyboard.IsHeld(KeyCode.R))
             {
-                SetupWorld();
+                SetupNewWorld();
             }
             
             if (Inputs.Keyboard.IsPressed(KeyCode.Escape))
@@ -159,7 +157,7 @@ namespace Hanamura
                 MainWindow.SetRelativeMouseMode(true);
             }
             
-            _assetStore.CheckForReload();
+            AssetStore.CheckForReload();
             foreach (var system in _systems)
             {
                 system.Update(delta);
@@ -168,7 +166,7 @@ namespace Hanamura
         
         protected override void Draw(double alpha)
         {
-            _renderSystem.Draw(alpha, MainWindow, GraphicsDevice, _assetStore);
+            _renderSystem.Draw(alpha, MainWindow, GraphicsDevice);
         }
     }
 }
